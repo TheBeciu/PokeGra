@@ -132,7 +132,20 @@ public:
 		else if (key[ALLEGRO_KEY_LEFT]) { x -= mSpeed; dir = LEFT; }
 		else if (key[ALLEGRO_KEY_RIGHT]) { x += mSpeed; dir = RIGHT; }
 		else { moving = false; }
+
+		if (collision(x, y, 100, 100, 16, 16))
+		{
+			if (key[ALLEGRO_KEY_UP]) { y += mSpeed; dir = UP; }
+			else if (key[ALLEGRO_KEY_DOWN]) { y -= mSpeed; dir = DOWN; }
+			else if (key[ALLEGRO_KEY_LEFT]) { x += mSpeed; dir = LEFT; }
+			else if (key[ALLEGRO_KEY_RIGHT]) { x -= mSpeed; dir = RIGHT; }
+		}
 		
+		if (y<=0) { y += mSpeed; dir = UP; }
+		else if (y>O_DISP_H-16) { y -= mSpeed; dir = DOWN; }
+		else if (x<=0) { x += mSpeed; dir = LEFT; }
+		else if (x>O_DISP_W-16) { x -= mSpeed; dir = RIGHT; }
+
 		//animacje gracza
 		if (moving)
 		{
@@ -182,8 +195,8 @@ int main()
 	ALLEGRO_EVENT event;
 
 	//Pozycja startowa gracza
-	float x = 100;
-	float y = 100;
+	float x = 10;
+	float y = 10;
 
 	queue = al_create_event_queue();
 	
@@ -234,7 +247,8 @@ int main()
 			al_draw_textf(font, al_map_rgb(255, 255, 255), 0, 30, 0, "Direction: %i  0:DOWN 1:LEFT 2:RIGHT 3:UP", trainer.getDIR());
 			
 			trainer.draw_player(x, y);
-			//al_draw_filled_rectangle(x, y, x + 20, y + 20, al_map_rgb(255, 255, 255));
+			al_draw_rectangle(100, 100, 116, 116, al_map_rgb(255, 0, 0),0);
+			al_draw_rectangle(x, y, x+16, y+16, al_map_rgb(255, 255, 255), 0);
 
 			display_post_draw();
 			redraw = false;
