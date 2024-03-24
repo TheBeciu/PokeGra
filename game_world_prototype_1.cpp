@@ -39,6 +39,8 @@ void display_init()
 {
 	al_get_monitor_info(0, &info);
 
+	al_set_new_display_flags(ALLEGRO_FULLSCREEN_WINDOW|ALLEGRO_FRAMELESS);
+
 	display = al_create_display(info.x2, info.y2);
 	buffer = al_create_bitmap(O_DISP_W, O_DISP_H);
 }
@@ -189,7 +191,7 @@ int main()
 	keyboard_init();
 
 	al_install_keyboard();
-
+	
 	ALLEGRO_EVENT_QUEUE* queue;
 	ALLEGRO_FONT* font;
 	
