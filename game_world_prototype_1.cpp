@@ -8,7 +8,7 @@
 #include <allegro5/allegro_font.h>
 #include <allegro5/allegro_primitives.h>
 #include <allegro5/allegro_image.h>
-
+#include <iostream>
 //Przygotowania do gry, rozbiæ póŸniej na oddzielne pliki
 
 enum Direction { DOWN, LEFT, RIGHT, UP };
@@ -20,22 +20,26 @@ bool moving = false;			//mówi, czy gracz siê porusza
 
 //skalowalny ekran gry
 //wymiary rzeczywiste
-#define O_DISP_W 400
-#define O_DISP_H 300
+#define O_DISP_W 640
+#define O_DISP_H 360
+
+ALLEGRO_MONITOR_INFO info;
 
 //skala
-#define DISP_SCALE 3
+//#define DISP_SCALE 4
 
 //wymiary wyœwietlane
-#define S_DISP_W (O_DISP_W * DISP_SCALE)
-#define S_DISP_H (O_DISP_H * DISP_SCALE)
+//#define S_DISP_W (O_DISP_W * DISP_SCALE)
+//#define S_DISP_H (O_DISP_H * DISP_SCALE)
 
 ALLEGRO_DISPLAY* display;
 ALLEGRO_BITMAP* buffer;
 
 void display_init()
 {
-	display = al_create_display(S_DISP_W, S_DISP_H);
+	al_get_monitor_info(0, &info);
+
+	display = al_create_display(info.x2, info.y2);
 	buffer = al_create_bitmap(O_DISP_W, O_DISP_H);
 }
 
@@ -54,7 +58,7 @@ void display_pre_draw()
 void display_post_draw()
 {
 	al_set_target_backbuffer(display);
-	al_draw_scaled_bitmap(buffer, 0, 0, O_DISP_W, O_DISP_H, 0, 0, S_DISP_W, S_DISP_H,0);
+	al_draw_scaled_bitmap(buffer, 0, 0, O_DISP_W, O_DISP_H, 0, 0, info.x2, info.y2,0);
 	al_flip_display();
 }
 
@@ -112,7 +116,7 @@ private:
 	float px;
 	float py;
 	int dir = DOWN;
-	int p_sourceX = 16;
+	int p_sourceX = 0;
 	ALLEGRO_BITMAP* player = al_load_bitmap("player_temp.png");
 public:
 	Player(float _px, float _py) { px = _px; py = _py; }
@@ -244,11 +248,12 @@ int main()
 			al_draw_textf(font, al_map_rgb(255, 255, 255), 0, 0, 0, "X: %.1f Y: %.1f", x, y);
 			al_draw_textf(font, al_map_rgb(255, 255, 255), 0, 10, 0, "FPS: %.1f", FPS);
 			al_draw_textf(font, al_map_rgb(255, 255, 255), 0, 20, 0, "Speed: %i", mSpeed);
+			al_draw_textf(font, al_map_rgb(255, 255, 255), (O_DISP_W - 100), (O_DISP_H - 20), 0, "%i x %i", info.x2, info.y2);
 			al_draw_textf(font, al_map_rgb(255, 255, 255), 0, 30, 0, "Direction: %i  0:DOWN 1:LEFT 2:RIGHT 3:UP", trainer.getDIR());
 			
 			trainer.draw_player(x, y);
 			al_draw_rectangle(100, 100, 116, 116, al_map_rgb(255, 0, 0),0);
-			al_draw_rectangle(x, y, x+16, y+16, al_map_rgb(255, 255, 255), 0);
+			//al_draw_rectangle(x, y, x+16, y+16, al_map_rgb(255, 255, 255), 0);
 
 			display_post_draw();
 			redraw = false;
