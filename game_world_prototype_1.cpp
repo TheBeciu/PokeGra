@@ -8,10 +8,11 @@
 #include <allegro5/allegro_font.h>
 #include <allegro5/allegro_primitives.h>
 #include <allegro5/allegro_image.h>
+//#include "Engine.h"
 #include <iostream>
 //Przygotowania do gry, rozbiæ póŸniej na oddzielne pliki
 
-enum Direction { DOWN, LEFT, RIGHT, UP };
+//enum Direction { DOWN, LEFT, RIGHT, UP };
 const float FPS = 30.0;			//klatki na sekunde gry
 const float frames = 5.0;		//klatki animacji
 float deltaTime = 1.0 / FPS;	//czas trwania klatki
@@ -20,8 +21,9 @@ bool moving = false;			//mówi, czy gracz siê porusza
 
 //skalowalny ekran gry
 //wymiary rzeczywiste
-#define O_DISP_W 640
-#define O_DISP_H 360
+
+const int dispW = 640;
+const int dispH = 360;
 
 ALLEGRO_MONITOR_INFO info;
 
@@ -42,7 +44,7 @@ void display_init()
 	al_set_new_display_flags(ALLEGRO_FULLSCREEN_WINDOW|ALLEGRO_FRAMELESS);
 
 	display = al_create_display(info.x2, info.y2);
-	buffer = al_create_bitmap(O_DISP_W, O_DISP_H);
+	buffer = al_create_bitmap(dispW, dispH);
 }
 
 void display_deinit()
@@ -60,7 +62,7 @@ void display_pre_draw()
 void display_post_draw()
 {
 	al_set_target_backbuffer(display);
-	al_draw_scaled_bitmap(buffer, 0, 0, O_DISP_W, O_DISP_H, 0, 0, info.x2, info.y2,0);
+	al_draw_scaled_bitmap(buffer, 0, 0, dispW, dispH, 0, 0, info.x2, info.y2,0);
 	al_flip_display();
 }
 
@@ -95,23 +97,33 @@ void keyboard_update(ALLEGRO_EVENT* event)
 }
 
 //Kolizja
-bool collision(float& px, float& py, float ex, float ey, float width, float hight)
+bool collision(float& px1, float& py1, float px2, float py2, float ox1, float oy1, float ox2, float oy2)
 {
-	if (px + width <= ex || px >= ex + width || py + hight <= ey || py >= hight + ey)
-	{
+	if (
+		px1 > ox1 + ox2 ||
+		px1 + px2 < ox1 ||
+		py1 > oy1 + oy2 ||
+		py1 + py2 < oy1) {
 		return false;
 	}
 	return true;
 }
+//bool collision(float& px, float& py, float ex, float ey, float width, float hight)
+//{
+//	if (px + width <= ex || px >= ex + width || py + hight <= ey || py >= hight + ey)
+//	{
+//		return false;
+//	}
+//	return true;
+//}
 
 //animacje gracza, przenieœæ w jakieœ ³adniejsze miejsce
 float animSpeed = 10.0;
 float animUpdateTime = 1.0 / animSpeed;
 float timeSinceLastFrameSwap = 0.0;
 
-
+enum Direction { DOWN, LEFT, RIGHT, UP };
 //Klasa gracza
-//px,py - wrzucilem je wrazie czego, ale nie wydaj¹ siê teraz po¿yteczne
 class Player
 {
 private:
@@ -119,6 +131,7 @@ private:
 	float py;
 	int dir = DOWN;
 	int p_sourceX = 0;
+	bool moving = false;
 	ALLEGRO_BITMAP* player = al_load_bitmap("player_temp.png");
 public:
 	Player(float _px, float _py) { px = _px; py = _py; }
@@ -139,7 +152,7 @@ public:
 		else if (key[ALLEGRO_KEY_RIGHT]) { x += mSpeed; dir = RIGHT; }
 		else { moving = false; }
 
-		if (collision(x, y, 100, 100, 16, 16))
+		if (collision(x, y, 16, 16, 300, 150,16,16))
 		{
 			if (key[ALLEGRO_KEY_UP]) { y += mSpeed; dir = UP; }
 			else if (key[ALLEGRO_KEY_DOWN]) { y -= mSpeed; dir = DOWN; }
@@ -147,10 +160,10 @@ public:
 			else if (key[ALLEGRO_KEY_RIGHT]) { x -= mSpeed; dir = RIGHT; }
 		}
 		
-		if (y<=0) { y += mSpeed; dir = UP; }
-		else if (y>O_DISP_H-16) { y -= mSpeed; dir = DOWN; }
-		else if (x<=0) { x += mSpeed; dir = LEFT; }
-		else if (x>O_DISP_W-16) { x -= mSpeed; dir = RIGHT; }
+		if (y<=50) { y += mSpeed; dir = UP; }
+		else if (y>330) { y -= mSpeed; dir = DOWN; }
+		else if (x<=100) { x += mSpeed; dir = LEFT; }
+		else if (x>380) { x -= mSpeed; dir = RIGHT; }
 
 		//animacje gracza
 		if (moving)
@@ -187,22 +200,23 @@ int main()
 	al_init_primitives_addon();
 	al_init_image_addon();
 
+	//Engine g;
+
 	display_init();
 	keyboard_init();
 
 	al_install_keyboard();
-	
-	ALLEGRO_EVENT_QUEUE* queue;
-	ALLEGRO_FONT* font;
-	
-	ALLEGRO_TIMER* timer = al_create_timer(deltaTime);
-	ALLEGRO_TIMER* animFrames = al_create_timer(1.0 / frames);
 
 	ALLEGRO_EVENT event;
+	ALLEGRO_EVENT_QUEUE* queue;
+	ALLEGRO_FONT* font;
+
+	ALLEGRO_TIMER *timer = al_create_timer(deltaTime);
+	ALLEGRO_TIMER *animFrames = al_create_timer(1.0 / frames);
 
 	//Pozycja startowa gracza
-	float x = 10;
-	float y = 10;
+	float x = 160;
+	float y = 60;
 
 	queue = al_create_event_queue();
 	
@@ -217,6 +231,8 @@ int main()
 
 	Player trainer(x, y);
 
+	ALLEGRO_BITMAP* map = al_load_bitmap("map.png");
+	ALLEGRO_BITMAP* npc = al_load_bitmap("player_temp.png");
 	//gameloop
 	al_start_timer(timer);
 	while (!done)
@@ -244,17 +260,20 @@ int main()
 		if (redraw && al_is_event_queue_empty(queue))
 		{
 			display_pre_draw();
-			al_clear_to_color(al_map_rgb(0, 0, 0));
+			al_clear_to_color(al_map_rgb(0, 0, 40));
 
+			al_draw_bitmap(map, 100, 50, 0);
+			//al_draw_rectangle(300, 150, 316, 166, al_map_rgb(255, 0, 0), 0);
+			al_draw_bitmap_region(npc,16,16,16,16,300,150,0);
 			//informacje, które mog¹ siê przydaæ
 			al_draw_textf(font, al_map_rgb(255, 255, 255), 0, 0, 0, "X: %.1f Y: %.1f", x, y);
 			al_draw_textf(font, al_map_rgb(255, 255, 255), 0, 10, 0, "FPS: %.1f", FPS);
 			al_draw_textf(font, al_map_rgb(255, 255, 255), 0, 20, 0, "Speed: %i", mSpeed);
-			al_draw_textf(font, al_map_rgb(255, 255, 255), (O_DISP_W - 100), (O_DISP_H - 20), 0, "%i x %i", info.x2, info.y2);
+			al_draw_textf(font, al_map_rgb(255, 255, 255), (dispW - 100), (dispH - 20), 0, "%i x %i", info.x2, info.y2);
 			al_draw_textf(font, al_map_rgb(255, 255, 255), 0, 30, 0, "Direction: %i  0:DOWN 1:LEFT 2:RIGHT 3:UP", trainer.getDIR());
 			
 			trainer.draw_player(x, y);
-			al_draw_rectangle(100, 100, 116, 116, al_map_rgb(255, 0, 0),0);
+			//al_draw_rectangle(100, 100, 116, 116, al_map_rgb(255, 0, 0),0);
 			//al_draw_rectangle(x, y, x+16, y+16, al_map_rgb(255, 255, 255), 0);
 
 			display_post_draw();
