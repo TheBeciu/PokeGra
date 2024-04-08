@@ -1,22 +1,12 @@
 #ifndef WORLDENTITIES
 #define WORLDENTITIES
 #include <allegro5/allegro.h>
-//#include "Engine.h"
+#include "Engine.h"
 
-//class Engine g;
+Engine game;
 
 enum Direction { DOWN, LEFT, RIGHT, UP };
 
-bool collision(float& px, float& py, float ex, float ey, float width, float hight)
-{
-	if (px + width <= ex || px >= ex + width || py + hight <= ey || py >= hight + ey)
-	{
-		return false;
-	}
-	return true;
-}
-
-unsigned char key[ALLEGRO_KEY_MAX];
 //Klasa gracza
 class Player
 {
@@ -28,47 +18,48 @@ private:
 	bool moving = false;
 	ALLEGRO_BITMAP* player = al_load_bitmap("player_temp.png");
 public:
-	Player(float _px, float _py) { px = _px; py = _py; }
-	float getX() { return px; }
-	float getY() { return py; }
-	int getDIR() { return dir; }
-	void setX(float x) { px = x; }
-	void setY(float y) { py = y; }
+	Player(float _px, float _py)	{ px = _px; py = _py; }
+	float getX()					{ return px; }
+	float getY()					{ return py; }
+	int getDIR()					{ return dir; }
+	void setX(float x)				{ px = x; }
+	void setY(float y)				{ py = y; }
+	void setDIR(int d)				{ dir = d; }
+	void setMoving(bool m)			{ moving = m; }
 
-	friend class Engine;
+	//friend class Engine;
 
-	void update_player(float& x, float& y)
+	void update_player()
 	{
 		moving = true;
 
 		//poruszanie gracza
-		if (key[ALLEGRO_KEY_UP]) { y -= g.mSpeed; dir = UP; }
-		else if (key[ALLEGRO_KEY_DOWN]) { y += g.mSpeed; dir = DOWN; }
-		else if (key[ALLEGRO_KEY_LEFT]) { x -= g.mSpeed; dir = LEFT; }
-		else if (key[ALLEGRO_KEY_RIGHT]) { x += g.mSpeed; dir = RIGHT; }
+		if (game.key[ALLEGRO_KEY_UP])			{ py -= game.getMSpeed(); dir = UP; }
+		else if (game.key[ALLEGRO_KEY_DOWN])	{ py += game.getMSpeed(); dir = DOWN; }
+		else if (game.key[ALLEGRO_KEY_LEFT])	{ px -= game.getMSpeed(); dir = LEFT; }
+		else if (game.key[ALLEGRO_KEY_RIGHT])	{ px += game.getMSpeed(); dir = RIGHT; }
 		else { moving = false; }
-
-		if (collision(x, y, 100, 100, 16, 16))
+		/*if (collision(px, py, 100, 100, 16, 16))
 		{
-			if (key[ALLEGRO_KEY_UP]) { y += g.mSpeed; dir = UP; }
-			else if (key[ALLEGRO_KEY_DOWN]) { y -= g.mSpeed; dir = DOWN; }
-			else if (key[ALLEGRO_KEY_LEFT]) { x += g.mSpeed; dir = LEFT; }
-			else if (key[ALLEGRO_KEY_RIGHT]) { x -= g.mSpeed; dir = RIGHT; }
-		}
+			if (game.key[ALLEGRO_KEY_UP]) { y += game.getMSpeed(); dir = UP; }
+			else if (game.key[ALLEGRO_KEY_DOWN]) { y -= game.getMSpeed(); dir = DOWN; }
+			else if (game.key[ALLEGRO_KEY_LEFT]) { x += game.getMSpeed(); dir = LEFT; }
+			else if (game.key[ALLEGRO_KEY_RIGHT]) { x -= game.getMSpeed(); dir = RIGHT; }
+		}*/
 
-		if (y <= 0) { y += g.mSpeed; dir = UP; }
-		else if (y > g.dispH - 16) { y -= g.mSpeed; dir = DOWN; }
-		else if (x <= 0) { x += g.mSpeed; dir = LEFT; }
-		else if (x > g.dispW - 16) { x -= g.mSpeed; dir = RIGHT; }
+		if (py <= 0)							{ py += game.getMSpeed(); dir = UP; }
+		else if (py > game.getDispH() - 16)		{ py -= game.getMSpeed(); dir = DOWN; }
+		else if (px <= 0)						{ px += game.getMSpeed(); dir = LEFT; }
+		else if (px > game.getDispW() - 16)		{ px -= game.getMSpeed(); dir = RIGHT; }
 
 		//animacje gracza
 		if (moving)
 		{
-			g.timeSinceLastFrameSwap += g.deltaTime;
-			if (g.timeSinceLastFrameSwap > g.animUpdateTime)
+			game.setTimeSinceLastFrameSwap(game.getTimeSinceLastFrameSwap()+game.getDeltaTime()); //+= game.getDeltaTime();
+			if (game.getTimeSinceLastFrameSwap() > game.getAnimUpdateTime())
 			{
 				p_sourceX += al_get_bitmap_width(player) / 4;
-				g.timeSinceLastFrameSwap = 0.0;
+				game.setTimeSinceLastFrameSwap(0.0);// = 0.0;
 			}
 			if (p_sourceX >= al_get_bitmap_width(player))
 			{
@@ -78,13 +69,13 @@ public:
 		else
 		{
 			p_sourceX = 16;
-			g.timeSinceLastFrameSwap = 0.0;
+			game.setTimeSinceLastFrameSwap(0.0);// = 0.0;
 		}
 	}
 
-	void draw_player(float x, float y)
+	void draw_player()
 	{
-		al_draw_bitmap_region(player, p_sourceX, dir * al_get_bitmap_height(player) / 4, 16, 16, x, y, 0);
+		al_draw_bitmap_region(player, p_sourceX, dir * al_get_bitmap_height(player) / 4, 16, 16, px, py, 0);
 	}
 };
 
