@@ -7,7 +7,7 @@
 
 
 
-enum Direction { DOWN, LEFT, RIGHT, UP };
+//enum Direction { DOWN, LEFT, RIGHT, UP };
 const float FPS = 30.0;			//klatki na sekunde gry
 const float frames = 5.0;		//klatki animacji
 float deltaTime = 1.0 / FPS;	//czas trwania klatki
@@ -133,8 +133,8 @@ static int run_battle_prototype()
 	bool redraw = true;
 	bool done = false;
 
-	ALLEGRO_BITMAP* player_sprite = al_load_bitmap("assets/trainer sprite.png");
-	ALLEGRO_BITMAP* enemy_sprite = al_load_bitmap("assets/charmander.png");
+	ALLEGRO_BITMAP* player_sprite = al_load_bitmap("player_temp.png");
+	ALLEGRO_BITMAP* enemy_sprite = al_load_bitmap("world_bitmap.png");
 
 	int selection_state = 1;
 	// 1 - fight

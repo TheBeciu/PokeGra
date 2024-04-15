@@ -11,6 +11,7 @@
 #include "Engine.h"
 #include "WorldEntities.h"
 #include "WorldMap.h"
+#include "battle_prototype.h"
 #include <iostream>
 //Komentarze na razie zostawiam w razie czego, ale s¹ do usuniêcia
 
@@ -196,6 +197,11 @@
 
 int main()
 {
+	/*if (true)
+	{
+		run_battle_prototype();
+	}*/
+	
 	al_init();
 	al_init_font_addon();
 	al_init_native_dialog_addon();
@@ -227,17 +233,15 @@ int main()
 	al_register_event_source(queue, al_get_display_event_source(game.display));
 	al_register_event_source(queue, al_get_timer_event_source(timer));
 
-	Player trainer(234.0, 18.0);
+	Player trainer(234.0, 38.0);
 
 	bool redraw = true;
 	bool done = false;
 
 	TileMap test1("test_tile_map_0.txt");
 	test1.LoadTileMap();
-	
-	ObjectMap test11("test_object_map_0.txt");
-	test11.LoadObjectMap();
 
+	enum GAMESTATE { MENU, WORLD, FIGHT };
 	//gameloop
 	al_start_timer(timer);
 	while (!done)
@@ -268,7 +272,6 @@ int main()
 			al_clear_to_color(al_map_rgb(0, 0, 40));
 
 			test1.DrawTileMap();
-			test11.DrawObjectMap();
 
 			//informacje, które mog¹ siê przydaæ
 			al_draw_textf(font, al_map_rgb(255, 255, 255), 0, 0, 0, "X: %.1f Y: %.1f", trainer.getX(), trainer.getY());
@@ -277,7 +280,14 @@ int main()
 			al_draw_textf(font, al_map_rgb(255, 255, 255), (game.getDispW() - 100), (game.getDispH() - 20), 0, "%i x %i", game.info.x2, game.info.y2);
 			al_draw_textf(font, al_map_rgb(255, 255, 255), 0, 30, 0, "Direction: %i  0:DOWN 1:LEFT 2:RIGHT 3:UP", trainer.getDIR());
 			
+			if (test1.isColliding(trainer))
+			{
+				al_draw_textf(font, al_map_rgb(255, 255, 255), 0, (game.getDispH() - 20), 0, "Kolizja");
+				//done = true;
+			}
+
 			trainer.draw_player();
+			
 			//al_draw_rectangle(100, 100, 116, 116, al_map_rgb(255, 0, 0),0);
 			//al_draw_rectangle(x, y, x+16, y+16, al_map_rgb(255, 255, 255), 0);
 
