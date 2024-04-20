@@ -18,10 +18,10 @@ void sprites_deinit()
 	al_destroy_bitmap(world_1);
 }
 
-bool collision(float px, float py, float ox, float oy)
+bool collision(float px, float py, float pw, float ph, float ox, float oy, float ow, float oh)
 {
-	bool x_overlaps = (px < ox + 16) && (px + 16 > ox);
-	bool y_overlaps = (py < oy + 16) && (py + 16 > oy);
+	bool x_overlaps = (px < ox + ow) && (px + pw > ox);
+	bool y_overlaps = (py < oy + oh) && (py + ph > oy);
 	bool coll = x_overlaps && y_overlaps;
 	return coll;
 }
@@ -138,7 +138,7 @@ public:
 			{
 				if (map[i][j] > 10)
 				{
-					if (collision(p.getX(), p.getY(), (i * block_size + offset), (j * block_size)))
+					if (collision(p.getX()+2, p.getY()+12, block_size - 4, block_size - 12, (i * block_size + offset), (j * block_size), block_size, block_size))
 					{
 						return true;
 					}

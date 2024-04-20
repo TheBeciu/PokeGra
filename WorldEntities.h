@@ -76,7 +76,7 @@ public:
 	void draw_player()
 	{
 		al_draw_bitmap_region(player, p_sourceX, dir * al_get_bitmap_height(player) / 4, 16, 16, px, py, 0);
-		al_draw_rectangle(px, py, px + 16, py + 16, al_map_rgb(255, 255, 255), 0);
+		al_draw_rectangle(px+2, py+12, px + 14, py + 16, al_map_rgb(255, 255, 255), 0);
 	}
 };
 

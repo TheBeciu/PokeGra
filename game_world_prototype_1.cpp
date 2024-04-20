@@ -283,7 +283,10 @@ int main()
 			if (test1.isColliding(trainer))
 			{
 				al_draw_textf(font, al_map_rgb(255, 255, 255), 0, (game.getDispH() - 20), 0, "Kolizja");
-				//done = true;
+				if (game.key[ALLEGRO_KEY_UP]) { trainer.setY(trainer.getY() + game.getMSpeed()); trainer.setDIR(UP); }
+				else if (game.key[ALLEGRO_KEY_DOWN]) { trainer.setY(trainer.getY() - game.getMSpeed()); trainer.setDIR(DOWN); }
+				else if (game.key[ALLEGRO_KEY_LEFT]) { trainer.setX(trainer.getX() + game.getMSpeed()); trainer.setDIR(LEFT); }
+				else if (game.key[ALLEGRO_KEY_RIGHT]) { trainer.setX(trainer.getX() - game.getMSpeed()); trainer.setDIR(RIGHT); }
 			}
 
 			trainer.draw_player();
