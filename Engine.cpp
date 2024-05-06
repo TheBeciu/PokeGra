@@ -1,6 +1,8 @@
 #include <allegro5/allegro.h>
 #include "Engine.h"
 
+enum GAMESTATE { MENU, WORLD, FIGHT, ENDSCREEN };
+
 void Engine::display_init()
 {
 	al_get_monitor_info(0, &info);
@@ -9,6 +11,7 @@ void Engine::display_init()
 
 	display = al_create_display(info.x2, info.y2);
 	buffer = al_create_bitmap(dispW, dispH);
+	font = al_create_builtin_font();
 }
 void Engine::display_deinit()
 {
@@ -47,4 +50,43 @@ void Engine::keyboard_update(ALLEGRO_EVENT* event)
 		key[event->keyboard.keycode] &= KEY_RELEASED;
 		break;
 	}
+}
+void Engine::changeState(int& state, int nState)
+{
+	//pre-proccess
+	switch (state)
+	{
+	case MENU:
+		std::cout << "leaving MENU\n";
+		break;
+	case WORLD:
+		std::cout << "leaving WORLD\n";
+		break;
+	case FIGHT:
+		std::cout << "leaving FIGHT\n";
+		break;
+	case ENDSCREEN:
+		std::cout << "leaving ENDSCREEN\n";
+		break;
+	}
+
+	state = nState;
+
+	//post-proccess
+	switch (state)
+	{
+	case MENU:
+		std::cout << "entering MENU\n";
+		break;
+	case WORLD:
+		std::cout << "entering WORLD\n";
+		break;
+	case FIGHT:
+		std::cout << "entering FIGHT\n";
+		break;
+	case ENDSCREEN:
+		std::cout << "entering ENDSCREEN\n";
+		break;
+	}
+
 }

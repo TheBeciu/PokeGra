@@ -8,211 +8,38 @@
 #include <allegro5/allegro_font.h>
 #include <allegro5/allegro_primitives.h>
 #include <allegro5/allegro_image.h>
+#include <iostream>
+#include <vector>
+
 #include "Engine.h"
+
 #include "WorldEntities.h"
 #include "WorldMap.h"
-#include "battle_prototype.h"
-#include <iostream>
-//Komentarze na razie zostawiam w razie czego, ale s¹ do usuniêcia
 
-////enum Direction { DOWN, LEFT, RIGHT, UP };
-//const float FPS = 30.0;			//klatki na sekunde gry
-//const float frames = 5.0;		//klatki animacji
-//float deltaTime = 1.0 / FPS;	//czas trwania klatki
-//const int mSpeed = 2;			//prêdkoœæ ruchu gracza
-//bool moving = false;			//mówi, czy gracz siê porusza
-//
-////skalowalny ekran gry
-////wymiary rzeczywiste
-//
-//const int dispW = 640;
-//const int dispH = 360;
-//
-//ALLEGRO_MONITOR_INFO info;
-//
-////skala
-////#define DISP_SCALE 4
-//
-////wymiary wyœwietlane
-////#define S_DISP_W (O_DISP_W * DISP_SCALE)
-////#define S_DISP_H (O_DISP_H * DISP_SCALE)
-//
-//ALLEGRO_DISPLAY* display;
-//ALLEGRO_BITMAP* buffer;
-//
-//void display_init()
-//{
-//	al_get_monitor_info(0, &info);
-//
-//	al_set_new_display_flags(ALLEGRO_FULLSCREEN_WINDOW|ALLEGRO_FRAMELESS);
-//
-//	display = al_create_display(info.x2, info.y2);
-//	buffer = al_create_bitmap(dispW, dispH);
-//}
-//
-//void display_deinit()
-//{
-//	al_destroy_bitmap(buffer);
-//	al_destroy_display(display);
-//}
-//
-//void display_pre_draw()
-//{
-//	al_set_target_bitmap(buffer);
-//}
-//
-////Ta funkcja w zasadzie zastêpuje al_flip_display() dla tej gry
-//void display_post_draw()
-//{
-//	al_set_target_backbuffer(display);
-//	al_draw_scaled_bitmap(buffer, 0, 0, dispW, dispH, 0, 0, info.x2, info.y2,0);
-//	al_flip_display();
-//}
-//
-////Przygotowanie klawiatury
-//
-//#define KEY_SEEN 1
-//#define KEY_RELEASED 2
-//unsigned char key[ALLEGRO_KEY_MAX];
-//
-//void keyboard_init()
-//{
-//	memset(key, 0, sizeof(key));
-//}
-//
-//void keyboard_update(ALLEGRO_EVENT* event)
-//{
-//	switch(event->type)
-//	{
-//	case ALLEGRO_EVENT_TIMER:
-//		for (int i = 0; i < ALLEGRO_KEY_MAX; i++)
-//		{
-//			key[i] &= KEY_SEEN;
-//		}
-//		break;
-//	case ALLEGRO_EVENT_KEY_DOWN:
-//		key[event->keyboard.keycode] = KEY_SEEN | KEY_RELEASED;
-//		break;
-//	case ALLEGRO_EVENT_KEY_UP:
-//		key[event->keyboard.keycode] &= KEY_RELEASED;
-//		break;
-//	}
-//}
-//
-////Kolizja
-//bool collision(float& px1, float& py1, float px2, float py2, float ox1, float oy1, float ox2, float oy2)
-//{
-//	if (
-//		px1 > ox1 + ox2 ||
-//		px1 + px2 < ox1 ||
-//		py1 > oy1 + oy2 ||
-//		py1 + py2 < oy1) {
-//		return false;
-//	}
-//	return true;
-//}
-////bool collision(float& px, float& py, float ex, float ey, float width, float hight)
-////{
-////	if (px + width <= ex || px >= ex + width || py + hight <= ey || py >= hight + ey)
-////	{
-////		return false;
-////	}
-////	return true;
-////}
-//
-////animacje gracza, przenieœæ w jakieœ ³adniejsze miejsce
-//float animSpeed = 10.0;
-//float animUpdateTime = 1.0 / animSpeed;
-//float timeSinceLastFrameSwap = 0.0;
-//
-//enum Direction { DOWN, LEFT, RIGHT, UP };
-////Klasa gracza
-//class Player
-//{
-//private:
-//	float px;
-//	float py;
-//	int dir = DOWN;
-//	int p_sourceX = 0;
-//	bool moving = false;
-//	ALLEGRO_BITMAP* player = al_load_bitmap("player_temp.png");
-//public:
-//	Player(float _px, float _py) { px = _px; py = _py; }
-//	float getX()		{ return px; }
-//	float getY()		{ return py; }
-//	int getDIR()		{ return dir; }
-//	void setX(float x)	{ px = x; }
-//	void setY(float y)	{ py = y; }
-//
-//	void update_player(float &x, float &y)
-//	{
-//		moving = true;
-//
-//		//poruszanie gracza
-//		if (key[ALLEGRO_KEY_UP]) { y -= mSpeed; dir = UP; }
-//		else if (key[ALLEGRO_KEY_DOWN]) { y += mSpeed; dir = DOWN; }
-//		else if (key[ALLEGRO_KEY_LEFT]) { x -= mSpeed; dir = LEFT; }
-//		else if (key[ALLEGRO_KEY_RIGHT]) { x += mSpeed; dir = RIGHT; }
-//		else { moving = false; }
-//
-//		if (collision(x, y, 16, 16, 300, 150,16,16))
-//		{
-//			if (key[ALLEGRO_KEY_UP]) { y += mSpeed; dir = UP; }
-//			else if (key[ALLEGRO_KEY_DOWN]) { y -= mSpeed; dir = DOWN; }
-//			else if (key[ALLEGRO_KEY_LEFT]) { x += mSpeed; dir = LEFT; }
-//			else if (key[ALLEGRO_KEY_RIGHT]) { x -= mSpeed; dir = RIGHT; }
-//		}
-//		
-//		if (y<=50) { y += mSpeed; dir = UP; }
-//		else if (y>330) { y -= mSpeed; dir = DOWN; }
-//		else if (x<=100) { x += mSpeed; dir = LEFT; }
-//		else if (x>380) { x -= mSpeed; dir = RIGHT; }
-//
-//		//animacje gracza
-//		if (moving)
-//		{
-//			timeSinceLastFrameSwap += deltaTime;
-//			if (timeSinceLastFrameSwap > animUpdateTime)
-//			{
-//				p_sourceX += al_get_bitmap_width(player) / 4;
-//				timeSinceLastFrameSwap = 0.0;
-//			}
-//			if (p_sourceX >= al_get_bitmap_width(player))
-//			{
-//				p_sourceX = 0;
-//			}
-//		}
-//		else
-//		{
-//			p_sourceX = 16;
-//			timeSinceLastFrameSwap = 0.0;
-//		}
-//	}
-//
-//	void draw_player(float x, float y)
-//	{
-//		al_draw_bitmap_region(player, p_sourceX, dir * al_get_bitmap_height(player) / 4, 16, 16, x, y, 0);
-//	}
-//};
+#include "Battle.h"
+#include"Potion.h"
+#include"Pokemon.h"
+
+const float start_posx = 234.0;
+const float start_posy = 38.0;
 
 int main()
 {
-	/*if (true)
-	{
-		run_battle_prototype();
-	}*/
-	
 	al_init();
 	al_init_font_addon();
 	al_init_native_dialog_addon();
 	al_init_primitives_addon();
 	al_init_image_addon();
 
-	//Engine game;
-
 	game.display_init();
 	game.keyboard_init();
 	sprites_init();
+
+	ALLEGRO_BITMAP* meowthBitmap = al_load_bitmap("meowth.png");
+	ALLEGRO_BITMAP* pikachuBitmap = al_load_bitmap("pikachu.png");
+	ALLEGRO_BITMAP* rattataBitmap = al_load_bitmap("rattata.png");
+	ALLEGRO_BITMAP* squirtleBitmap = al_load_bitmap("squirtle.png");
+	ALLEGRO_BITMAP* charmanderBitmap = al_load_bitmap("charmander.png");
 
 	al_install_keyboard();
 
@@ -233,7 +60,23 @@ int main()
 	al_register_event_source(queue, al_get_display_event_source(game.display));
 	al_register_event_source(queue, al_get_timer_event_source(timer));
 
-	Player trainer(234.0, 38.0);
+	Battle battle(game);
+	std::vector<Potion> playerPotions{
+		{1.0f, "Potion 1"}, {2.0f, "Potion 2"}, {3.0f, "Potion 3"},
+		{4.0f, "Potion 4"}, {5.0f, "Potion 5"} };
+	std::vector<Pokemon> playerPokemons{
+		{"Meowth 100", meowthBitmap, 100.0f, {{101.0f,"Attack 101"}, {102.0f,"Attack 102"},
+			{103.0f,"Attack 103"}, {104.0f,"Attack 104"}, {105.0f,"Attack 105"}}},
+		{"Pikachu 200", pikachuBitmap, 200.0f, {{201.0f,"Attack 201"}, {202.0f,"Attack 202"},
+			{203.0f,"Attack 203"}, {204.0f,"Attack 204"}, {205.0f,"Attack 205"}}},
+		{"Rattata 300", rattataBitmap, 300.0f, {{301.0f,"Attack 301"}, {302.0f,"Attack 302"},
+			{303.0f,"Attack 303"}, {304.0f,"Attack 304"}, {305.0f,"Attack 305"}}},
+		{"Squirtle 400", squirtleBitmap, 400.0f, {{401.0f,"Attack 401"}, {402.0f,"Attack 402"},
+			{403.0f,"Attack 403"}, {404.0f,"Attack 404"}, {405.0f,"Attack 405"}}},
+		{"Charmander 500", charmanderBitmap, 500.0f, {{501.0f,"Attack 501"}, {502.0f,"Attack 502"},
+			{503.0f,"Attack 503"}, {504.0f,"Attack 504"}, {505.0f,"Attack 505"}}}, };
+
+	Player trainer(start_posx, start_posy);
 
 	bool redraw = true;
 	bool done = false;
@@ -241,22 +84,72 @@ int main()
 	TileMap test1("test_tile_map_0.txt");
 	test1.LoadTileMap();
 
-	enum GAMESTATE { MENU, WORLD, FIGHT };
+	enum GAMESTATE { MENU, WORLD, FIGHT, ENDSCREEN };
+
+	int state = -1;
+
+	game.changeState(state, MENU);
 	//gameloop
 	al_start_timer(timer);
 	while (!done)
 	{
+		//update
 		al_wait_for_event(queue, &event);
 		switch (event.type)
 		{
 		case ALLEGRO_EVENT_TIMER:
-			trainer.update_player();
+			if(state == WORLD)
+			{
+				//trainer.update_player();
+			}
+			else if (state == FIGHT)
+			{
+				if(battle.isStarted())
+					battle.handleKeyboardEvents();
+			}
 			
-			if (game.key[ALLEGRO_KEY_ESCAPE]) { std::cout << "DONE"; done = true; }
+			if (game.checkKeyDownOnce(ALLEGRO_KEY_ESCAPE)) 
+			{ 
+				std::cout << "DONE"; done = true; 
+			}
+
+			if (state == MENU)
+			{
+				if (game.checkKeyDownOnce(ALLEGRO_KEY_ENTER))
+					game.changeState(state, WORLD);
+			}
+
+			else if (state == WORLD)
+			{
+				if (game.checkKeyDownOnce(ALLEGRO_KEY_F))
+				{
+					battle.start(&playerPokemons, &playerPotions);
+					game.changeState(state, FIGHT);
+					if (!battle.isStarted())
+						return -5;
+				}
+			}
+			else if (state == FIGHT)
+			{
+				if (game.checkKeyDownOnce(ALLEGRO_KEY_F))
+				{
+					game.changeState(state, WORLD);
+				}
+				else if (game.checkKeyDownOnce(ALLEGRO_KEY_SPACE))
+				{
+					game.changeState(state, ENDSCREEN);
+				}
+			}
+			else if (state == ENDSCREEN)
+			{
+				if (game.checkKeyDownOnce(ALLEGRO_KEY_SPACE))
+				{
+					game.changeState(state, MENU);
+				}
+			}
 
 			redraw = true;
 			break;
-			
 		case ALLEGRO_EVENT_DISPLAY_CLOSE:
 			done = true;
 			break;
@@ -266,12 +159,64 @@ int main()
 
 		game.keyboard_update(&event);
 
+		//render
 		if (redraw && al_is_event_queue_empty(queue))
 		{
 			game.display_pre_draw();
-			al_clear_to_color(al_map_rgb(0, 0, 40));
+			if (state == MENU)
+			{
+				al_clear_to_color(al_map_rgb(100, 50, 100));
+				al_draw_textf(font, al_map_rgb(255, 255, 255), game.getDispW()/2, game.getDispH() / 2, 0, "WORLD (ENTER)");
+			}
+			else if (state == WORLD)
+			{
+				al_clear_to_color(al_map_rgb(10, 50, 10));
+				trainer.update_player();
+				test1.DrawTileMap();
 
-			test1.DrawTileMap();
+				if (test1.isColliding(trainer) == 1)
+				{
+					al_draw_textf(font, al_map_rgb(255, 255, 255), 0, (game.getDispH() - 20), 0, "Kolizja");
+					if (game.key[ALLEGRO_KEY_UP]) { trainer.setY(trainer.getY() + game.getMSpeed()); trainer.setDIR(UP); }
+					else if (game.key[ALLEGRO_KEY_DOWN]) { trainer.setY(trainer.getY() - game.getMSpeed()); trainer.setDIR(DOWN); }
+					else if (game.key[ALLEGRO_KEY_LEFT]) { trainer.setX(trainer.getX() + game.getMSpeed()); trainer.setDIR(LEFT); }
+					else if (game.key[ALLEGRO_KEY_RIGHT]) { trainer.setX(trainer.getX() - game.getMSpeed()); trainer.setDIR(RIGHT); }
+				}
+				else if (test1.isColliding(trainer) == 2)
+				{
+					game.changeState(state, FIGHT);
+					battle.start(&playerPokemons, &playerPotions);
+					//gra powinna po walce rozwarzyc dwa przypadki
+					//1. gracz wygral i usuwa przeciwnika
+					//2. gracz przegral, koniec gry i wraca na miejsce poczatkowe
+					//
+					//na ten moment wejscie tak w walke blokuje nas w walce, poniewaz teoretycznie dalej jestesmy w przeciwniku
+					//moze da sie zrobic funkcje przesuwajaca gracza, ale nie wiem, czy ma to sens
+					//te dwie ponizsze linie kodu sa absolutnie paskude, ale musza na razie starczec
+					trainer.setX(300);
+					trainer.setY(300);
+				}
+
+				trainer.draw_player();
+			}
+			else if (state == FIGHT)
+			{
+				al_clear_to_color(al_map_rgb(50, 50, 10));
+				if (battle.isStarted())
+					battle.draw();
+				else
+				{
+					game.changeState(state, WORLD);
+				}
+			}
+			else if (state == ENDSCREEN)
+			{
+				al_clear_to_color(al_map_rgb(100, 100, 100));
+				al_draw_textf(font, al_map_rgb(255, 255, 255), game.getDispW() / 2, game.getDispH() / 2, 0, "MENU (SPACE)");
+				trainer.change_pos(start_posx, start_posy, DOWN);
+			}
+			
+			//test1.DrawTileMap();
 
 			//informacje, które mog¹ siê przydaæ
 			al_draw_textf(font, al_map_rgb(255, 255, 255), 0, 0, 0, "X: %.1f Y: %.1f", trainer.getX(), trainer.getY());
@@ -279,26 +224,18 @@ int main()
 			al_draw_textf(font, al_map_rgb(255, 255, 255), 0, 20, 0, "Speed: %i", game.getMSpeed());
 			al_draw_textf(font, al_map_rgb(255, 255, 255), (game.getDispW() - 100), (game.getDispH() - 20), 0, "%i x %i", game.info.x2, game.info.y2);
 			al_draw_textf(font, al_map_rgb(255, 255, 255), 0, 30, 0, "Direction: %i  0:DOWN 1:LEFT 2:RIGHT 3:UP", trainer.getDIR());
-			
-			if (test1.isColliding(trainer))
-			{
-				al_draw_textf(font, al_map_rgb(255, 255, 255), 0, (game.getDispH() - 20), 0, "Kolizja");
-				if (game.key[ALLEGRO_KEY_UP]) { trainer.setY(trainer.getY() + game.getMSpeed()); trainer.setDIR(UP); }
-				else if (game.key[ALLEGRO_KEY_DOWN]) { trainer.setY(trainer.getY() - game.getMSpeed()); trainer.setDIR(DOWN); }
-				else if (game.key[ALLEGRO_KEY_LEFT]) { trainer.setX(trainer.getX() + game.getMSpeed()); trainer.setDIR(LEFT); }
-				else if (game.key[ALLEGRO_KEY_RIGHT]) { trainer.setX(trainer.getX() - game.getMSpeed()); trainer.setDIR(RIGHT); }
-			}
-
-			trainer.draw_player();
-			
-			//al_draw_rectangle(100, 100, 116, 116, al_map_rgb(255, 0, 0),0);
-			//al_draw_rectangle(x, y, x+16, y+16, al_map_rgb(255, 255, 255), 0);
 
 			game.display_post_draw();
 			redraw = false;
 		}
 	}
+
 	game.display_deinit();
+	al_destroy_bitmap(meowthBitmap);
+	al_destroy_bitmap(pikachuBitmap);
+	al_destroy_bitmap(rattataBitmap);
+	al_destroy_bitmap(squirtleBitmap);
+	al_destroy_bitmap(charmanderBitmap);
 	sprites_deinit();
 	al_destroy_timer(timer);
 	al_destroy_event_queue(queue);

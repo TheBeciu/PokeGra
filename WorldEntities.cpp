@@ -1,5 +1,8 @@
 //#include <allegro5/allegro.h>
 //#include "WorldEntities.h"
+
+//enum Direction { DOWN, LEFT, RIGHT, UP };
+//Engine game;
 //
 //void Player::update_player()
 //{
@@ -11,13 +14,6 @@
 //	else if (game.key[ALLEGRO_KEY_LEFT]) { px -= game.getMSpeed(); dir = LEFT; }
 //	else if (game.key[ALLEGRO_KEY_RIGHT]) { px += game.getMSpeed(); dir = RIGHT; }
 //	else { moving = false; }
-//	/*if (collision(px, py, 100, 100, 16, 16))
-//	{
-//		if (game.key[ALLEGRO_KEY_UP]) { y += game.getMSpeed(); dir = UP; }
-//		else if (game.key[ALLEGRO_KEY_DOWN]) { y -= game.getMSpeed(); dir = DOWN; }
-//		else if (game.key[ALLEGRO_KEY_LEFT]) { x += game.getMSpeed(); dir = LEFT; }
-//		else if (game.key[ALLEGRO_KEY_RIGHT]) { x -= game.getMSpeed(); dir = RIGHT; }
-//	}*/
 //
 //	if (py <= 0) { py += game.getMSpeed(); dir = UP; }
 //	else if (py > game.getDispH() - 16) { py -= game.getMSpeed(); dir = DOWN; }
@@ -47,4 +43,11 @@
 //void Player::draw_player()
 //{
 //	al_draw_bitmap_region(player, p_sourceX, dir * al_get_bitmap_height(player) / 4, 16, 16, px, py, 0);
+//	al_draw_rectangle(px + 2, py + 12, px + 14, py + 16, al_map_rgb(255, 255, 255), 0);
+//}
+//void Player::change_pos(float _x, float _y, int _d)
+//{
+//	px = _x;
+//	py = _y;
+//	dir = _d;
 //}

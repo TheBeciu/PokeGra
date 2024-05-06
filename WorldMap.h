@@ -7,15 +7,18 @@
 #include "WorldEntities.h"
 
 ALLEGRO_BITMAP* world_1;
+ALLEGRO_BITMAP* items;
 
 void sprites_init()
 {
 	world_1 = al_load_bitmap("world_bitmap.png");
+	items = al_load_bitmap("item_test.png");
 }
 
 void sprites_deinit()
 {
 	al_destroy_bitmap(world_1);
+	al_destroy_bitmap(items);
 }
 
 bool collision(float px, float py, float pw, float ph, float ox, float oy, float ow, float oh)
@@ -129,23 +132,38 @@ public:
 			}
 		}
 	}
-	bool isColliding(Player& p)
+	int isColliding(Player& p)
 	{
 		for (int i = 0; i < mapSizeX; i++)
 		{
 			
 			for (int j = 0; j < mapSizeY; j++)
 			{
-				if (map[i][j] > 10)
+				if (map[i][j] != 19 && map[i][j] > 11)
 				{
 					if (collision(p.getX()+2, p.getY()+12, block_size - 4, block_size - 12, (i * block_size + offset), (j * block_size), block_size, block_size))
 					{
-						return true;
+						return 1;
+					}
+				}
+				else if (map[i][j] == 19)
+				{
+					if (collision(p.getX() + 2, p.getY() + 12, block_size - 4, block_size - 12, (i * block_size + offset), (j * block_size), block_size, block_size))
+					{
+						return 2;
+					}
+				}
+				else if (map[i][j] == 10)
+				{
+					if (collision(p.getX() + 2, p.getY() + 12, block_size - 4, block_size - 12, (i * block_size + offset), (j * block_size), block_size, block_size))
+					{
+						map[i][j] = 0;
+						return 3;
 					}
 				}
 			}
 		}
-		return false;
+		return 0;
 	}
 };
 

@@ -61,6 +61,21 @@ public:
 	void keyboard_init();
 	void keyboard_update(ALLEGRO_EVENT* event);
 
+	void changeState(int &state, int nState);
+
+	/*
+	Przyjmuje (keyCode < ALLEGRO_KEY_MAX) jako parametr, np. ALLEGRO_KEY_E, i zwraca true,
+	gdy naciœniêto klawisz. Przytrzymanie klawisza nie jest raportowane jako true.
+	*/
+	bool checkKeyDownOnce(int keyCode) const {
+		/*
+		zastosowany algorytm gwarantuje, ¿e naciœniêcie klawisza jest raportowane jako 3,
+		a przytrzymanie jako 1
+		*/
+		return key[keyCode] == (KEY_SEEN | KEY_RELEASED);
+	}
+
+
 	friend class Player;
 };
 
