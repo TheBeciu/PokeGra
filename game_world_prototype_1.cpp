@@ -41,6 +41,9 @@ int main()
 	ALLEGRO_BITMAP* squirtleBitmap = al_load_bitmap("squirtle.png");
 	ALLEGRO_BITMAP* charmanderBitmap = al_load_bitmap("charmander.png");
 
+	ALLEGRO_BITMAP* player = al_load_bitmap("player_temp.png");
+	ALLEGRO_BITMAP* enemy = al_load_bitmap("enemy_temp.png");
+
 	al_install_keyboard();
 
 	ALLEGRO_EVENT event;
@@ -76,7 +79,8 @@ int main()
 		{"Charmander 500", charmanderBitmap, 500.0f, {{501.0f,"Attack 501"}, {502.0f,"Attack 502"},
 			{503.0f,"Attack 503"}, {504.0f,"Attack 504"}, {505.0f,"Attack 505"}}}, };
 
-	Player trainer(start_posx, start_posy);
+	Player trainer(start_posx, start_posy, player);
+	Enemy enemy1(300, 300, enemy);
 
 	bool redraw = true;
 	bool done = false;
@@ -98,20 +102,13 @@ int main()
 		switch (event.type)
 		{
 		case ALLEGRO_EVENT_TIMER:
-			if(state == WORLD)
-			{
-				//trainer.update_player();
-			}
-			else if (state == FIGHT)
-			{
-				if(battle.isStarted())
-					battle.handleKeyboardEvents();
-			}
-			
 			if (game.checkKeyDownOnce(ALLEGRO_KEY_ESCAPE)) 
 			{ 
 				std::cout << "DONE"; done = true; 
 			}
+
+			if (battle.isStarted())
+				battle.handleKeyboardEvents();
 
 			if (state == MENU)
 			{
@@ -121,12 +118,34 @@ int main()
 
 			else if (state == WORLD)
 			{
+				trainer.update_player();
+				enemy1.update_enemy();
+
+				if (test1.isTileColliding(trainer) == 1)
+				{
+					if (game.key[ALLEGRO_KEY_UP]) { trainer.setY(trainer.getY() + game.getMSpeed()); trainer.setDIR(UP); }
+					else if (game.key[ALLEGRO_KEY_DOWN]) { trainer.setY(trainer.getY() - game.getMSpeed()); trainer.setDIR(DOWN); }
+					else if (game.key[ALLEGRO_KEY_LEFT]) { trainer.setX(trainer.getX() + game.getMSpeed()); trainer.setDIR(LEFT); }
+					else if (game.key[ALLEGRO_KEY_RIGHT]) { trainer.setX(trainer.getX() - game.getMSpeed()); trainer.setDIR(RIGHT); }
+				}
+				if (enemy1.isEnemyColliding(trainer) == 1)
+				{
+					battle.start(&playerPokemons, &playerPotions);
+					game.changeState(state, FIGHT);
+					enemy1.setONMAP(false);
+				}
+				
+
 				if (game.checkKeyDownOnce(ALLEGRO_KEY_F))
 				{
 					battle.start(&playerPokemons, &playerPotions);
 					game.changeState(state, FIGHT);
 					if (!battle.isStarted())
 						return -5;
+				}
+				if (game.checkKeyDownOnce(ALLEGRO_KEY_P))
+				{
+					enemy1.setONMAP(true);
 				}
 			}
 			else if (state == FIGHT)
@@ -171,33 +190,12 @@ int main()
 			else if (state == WORLD)
 			{
 				al_clear_to_color(al_map_rgb(10, 50, 10));
-				trainer.update_player();
+
 				test1.DrawTileMap();
 
-				if (test1.isColliding(trainer) == 1)
-				{
-					al_draw_textf(font, al_map_rgb(255, 255, 255), 0, (game.getDispH() - 20), 0, "Kolizja");
-					if (game.key[ALLEGRO_KEY_UP]) { trainer.setY(trainer.getY() + game.getMSpeed()); trainer.setDIR(UP); }
-					else if (game.key[ALLEGRO_KEY_DOWN]) { trainer.setY(trainer.getY() - game.getMSpeed()); trainer.setDIR(DOWN); }
-					else if (game.key[ALLEGRO_KEY_LEFT]) { trainer.setX(trainer.getX() + game.getMSpeed()); trainer.setDIR(LEFT); }
-					else if (game.key[ALLEGRO_KEY_RIGHT]) { trainer.setX(trainer.getX() - game.getMSpeed()); trainer.setDIR(RIGHT); }
-				}
-				else if (test1.isColliding(trainer) == 2)
-				{
-					game.changeState(state, FIGHT);
-					battle.start(&playerPokemons, &playerPotions);
-					//gra powinna po walce rozwarzyc dwa przypadki
-					//1. gracz wygral i usuwa przeciwnika
-					//2. gracz przegral, koniec gry i wraca na miejsce poczatkowe
-					//
-					//na ten moment wejscie tak w walke blokuje nas w walce, poniewaz teoretycznie dalej jestesmy w przeciwniku
-					//moze da sie zrobic funkcje przesuwajaca gracza, ale nie wiem, czy ma to sens
-					//te dwie ponizsze linie kodu sa absolutnie paskude, ale musza na razie starczec
-					trainer.setX(300);
-					trainer.setY(300);
-				}
-
 				trainer.draw_player();
+				if(enemy1.isThere())
+					enemy1.draw_enemy();
 			}
 			else if (state == FIGHT)
 			{
@@ -215,15 +213,13 @@ int main()
 				al_draw_textf(font, al_map_rgb(255, 255, 255), game.getDispW() / 2, game.getDispH() / 2, 0, "MENU (SPACE)");
 				trainer.change_pos(start_posx, start_posy, DOWN);
 			}
-			
-			//test1.DrawTileMap();
 
 			//informacje, które mog¹ siê przydaæ
 			al_draw_textf(font, al_map_rgb(255, 255, 255), 0, 0, 0, "X: %.1f Y: %.1f", trainer.getX(), trainer.getY());
-			al_draw_textf(font, al_map_rgb(255, 255, 255), 0, 10, 0, "FPS: %.1f", game.getFPS());
-			al_draw_textf(font, al_map_rgb(255, 255, 255), 0, 20, 0, "Speed: %i", game.getMSpeed());
+			//al_draw_textf(font, al_map_rgb(255, 255, 255), 0, 10, 0, "FPS: %.1f", game.getFPS());
+			al_draw_textf(font, al_map_rgb(255, 255, 255), 0, 10, 0, "Speed: %i", game.getMSpeed());
 			al_draw_textf(font, al_map_rgb(255, 255, 255), (game.getDispW() - 100), (game.getDispH() - 20), 0, "%i x %i", game.info.x2, game.info.y2);
-			al_draw_textf(font, al_map_rgb(255, 255, 255), 0, 30, 0, "Direction: %i  0:DOWN 1:LEFT 2:RIGHT 3:UP", trainer.getDIR());
+			al_draw_textf(font, al_map_rgb(255, 255, 255), 0, 20, 0, "Direction: %i  0:DOWN 1:LEFT 2:RIGHT 3:UP", trainer.getDIR());
 
 			game.display_post_draw();
 			redraw = false;

@@ -7,6 +7,14 @@ Engine game;
 
 enum Direction { DOWN, LEFT, RIGHT, UP };
 
+bool collision(float px, float py, float pw, float ph, float ox, float oy, float ow, float oh)
+{
+	bool x_overlaps = (px < ox + ow) && (px + pw > ox);
+	bool y_overlaps = (py < oy + oh) && (py + ph > oy);
+	bool coll = x_overlaps && y_overlaps;
+	return coll;
+}
+
 //Klasa gracza
 class Player
 {
@@ -14,21 +22,21 @@ private:
 	float px;
 	float py;
 	int dir = DOWN;
-	int p_sourceX = 0;
+	int b_sourceX = 0;
 	bool moving = false;
-	ALLEGRO_BITMAP* player = al_load_bitmap("player_temp.png");
+	ALLEGRO_BITMAP* player;
 	int temp_item_counter = 0;
 public:
-	Player(float _px, float _py)	{ px = _px; py = _py; }
-	float getX()					{ return px; }
-	float getY()					{ return py; }
-	int getDIR()					{ return dir; }
-	int getTEMP()					{ return temp_item_counter; }
-	void setX(float x)				{ px = x; }
-	void setY(float y)				{ py = y; }
-	void setDIR(int d)				{ dir = d; }
-	void setMoving(bool m)			{ moving = m; }
-	void addTEMP()					{ temp_item_counter++; }
+	Player(float _px, float _py, ALLEGRO_BITMAP* _player)	{ px = _px; py = _py; player = _player; }
+	float getX()											{ return px; }
+	float getY()											{ return py; }
+	int getDIR()											{ return dir; }
+	int getTEMP()											{ return temp_item_counter; }
+	void setX(float x)										{ px = x; }
+	void setY(float y)										{ py = y; }
+	void setDIR(int d)										{ dir = d; }
+	void setMoving(bool m)									{ moving = m; }
+	void addTEMP()											{ temp_item_counter++; }
 
 	//friend class Engine;
 
@@ -54,25 +62,25 @@ public:
 			game.setTimeSinceLastFrameSwap(game.getTimeSinceLastFrameSwap()+game.getDeltaTime()); //+= game.getDeltaTime();
 			if (game.getTimeSinceLastFrameSwap() > game.getAnimUpdateTime())
 			{
-				p_sourceX += al_get_bitmap_width(player) / 4;
+				b_sourceX += al_get_bitmap_width(player) / 4;
 				game.setTimeSinceLastFrameSwap(0.0);// = 0.0;
 			}
-			if (p_sourceX >= al_get_bitmap_width(player))
+			if (b_sourceX >= al_get_bitmap_width(player))
 			{
-				p_sourceX = 0;
+				b_sourceX = 0;
 			}
 		}
 		else
 		{
-			p_sourceX = 16;
+			b_sourceX = 16;
 			game.setTimeSinceLastFrameSwap(0.0);// = 0.0;
 		}
 	}
 
 	void draw_player()
 	{
-		al_draw_bitmap_region(player, p_sourceX, dir * al_get_bitmap_height(player) / 4, 16, 16, px, py, 0);
-		al_draw_rectangle(px+2, py+12, px + 14, py + 16, al_map_rgb(255, 255, 255), 0);
+		al_draw_bitmap_region(player, b_sourceX, dir * al_get_bitmap_height(player) / 4, 16, 16, px, py, 0);
+		//al_draw_rectangle(px+2, py+12, px + 14, py + 16, al_map_rgb(255, 255, 255), 0);
 	}
 	void change_pos(float _x, float _y, int _d)
 	{
@@ -82,23 +90,92 @@ public:
 	}
 };
 
-//class Item
-//{
-//	int itemID;
-//	std::string itemName;
-//	int posx;
-//	int posy;
-//public:
-//	Item(int _itemID, std::string _itemName, int _posx, int _posy)
-//	{
-//		itemID = _itemID;
-//		itemName = _itemName;
-//		posx = _posx;
-//		posy = _posy;
-//	}
-//	~Item() = default;
-//
-//	int getPosX() { return posx; }
-//	int getPosY() { return posy; }
-//};
+class Enemy
+{
+	float posx;
+	float posy;
+	ALLEGRO_BITMAP* sprite;
+
+	int dir = DOWN;
+	int b_sourceX = 0;
+	bool moving = true;
+	bool on_map = true;
+
+	float path1 = 300;
+	float path2 = 350;
+
+	//musze to tak zrobic, bo inaczej animacja przeciwnika jest aktywna podczas poruszania sie gracza;
+	float EnemyTimeSinceLastFrameSwap = 0.0;
+	float EnemyAnimSpeed = game.getAnimSpeed() / 2;
+	float EnemyAnimUpdateTime = 1.0 / EnemyAnimSpeed;
+public:
+	Enemy(float _posx, float _posy, ALLEGRO_BITMAP* _sprite) { posx = _posx; posy = _posy; sprite = _sprite; }
+	float getPOSX() { return posx; }
+	float getPOSY() { return posy; }
+	void setPOSX(float x) { posx = x; }
+	void setPOSY(float y) { posy = y; }
+	void setONMAP(bool b) { on_map = b; }
+
+	void update_enemy()
+	{
+		if(on_map)
+		{
+			if (dir == DOWN)
+			{
+				posy++;
+				if (posy == path2)
+				{
+					dir = UP;
+				}
+			}
+			else if (dir == UP)
+			{
+				posy--;
+				if (posy == path1)
+				{
+					dir = DOWN;
+				}
+			}
+
+			if (moving)
+			{
+				EnemyTimeSinceLastFrameSwap += game.getDeltaTime();
+				if (EnemyTimeSinceLastFrameSwap > EnemyAnimUpdateTime)
+				{
+					b_sourceX += al_get_bitmap_width(sprite) / 4;
+					EnemyTimeSinceLastFrameSwap = 0.0;
+				}
+				if (b_sourceX >= al_get_bitmap_width(sprite))
+				{
+					b_sourceX = 0;
+				}
+			}
+			else
+			{
+				b_sourceX = 16;
+				EnemyTimeSinceLastFrameSwap = 0.0;
+			}
+		}
+	}
+	void draw_enemy()
+	{
+		al_draw_bitmap_region(sprite, b_sourceX, dir * al_get_bitmap_height(sprite) / 4, 16, 16, posx, posy, 0);
+		//al_draw_rectangle(posx + 2, posy + 12, posx + 14, posy + 16, al_map_rgb(255, 255, 255), 0);
+	}
+	bool isEnemyColliding(Player& p)
+	{
+		if(on_map)
+		{
+			if (collision(p.getX() + 2, p.getY() + 12, 16 - 4, 16 - 12, posx + 2, posy + 12, 16 - 4, 16 - 12))
+			{
+				return true;
+			}
+		}
+	}
+	bool isThere()
+	{
+		return on_map;
+		
+	}
+};
 #endif
