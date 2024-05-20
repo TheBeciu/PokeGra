@@ -7,27 +7,21 @@
 #include "WorldEntities.h"
 
 ALLEGRO_BITMAP* world_1;
-ALLEGRO_BITMAP* items;
+ALLEGRO_BITMAP* world_2;
+
+enum MAP { OVERWORLD, DESERT, CAVE, ENDHALL };
 
 void sprites_init()
 {
-	world_1 = al_load_bitmap("world_bitmap.png");
-	items = al_load_bitmap("item_test.png");
+	world_1 = al_load_bitmap("world1_bitmap.png");
+	world_2 = al_load_bitmap("world2_bitmap.png");
 }
 
 void sprites_deinit()
 {
 	al_destroy_bitmap(world_1);
-	al_destroy_bitmap(items);
+	al_destroy_bitmap(world_2);
 }
-
-//bool collision(float px, float py, float pw, float ph, float ox, float oy, float ow, float oh)
-//{
-//	bool x_overlaps = (px < ox + ow) && (px + pw > ox);
-//	bool y_overlaps = (py < oy + oh) && (py + ph > oy);
-//	bool coll = x_overlaps && y_overlaps;
-//	return coll;
-//}
 
 class TileMap
 {
@@ -39,12 +33,25 @@ class TileMap
 	int map[30][30];
 	const char* mapfile;
 	const int offset = 187;
+	int playerStartTileX = 3;
+	int playerStartTileY = 3;
+	int currentMap = -1;
+	std::vector<ALLEGRO_BITMAP*> mapList;
 public:
-	TileMap(const char* _m) { mapfile = _m; }
+	//TileMap(const char* _m, int _x, int _y ) { mapfile = _m; playerStartTileX = _x; playerStartTileY = _y; }
 
-	void LoadTileMap()
+	int getSpawnX() { return playerStartTileX; }
+	int getSpawnY() { return playerStartTileY; }
+
+	void LoadListOfMaps()
 	{
-		std::ifstream openfile(mapfile);
+		mapList.push_back(world_1);
+		mapList.push_back(world_2);
+	}
+
+	void LoadTileMap(const char* _mapfile)
+	{
+		std::ifstream openfile(_mapfile);
 		if (openfile.is_open())
 		{
 			openfile >> mapSizeX >> mapSizeY;
@@ -62,6 +69,20 @@ public:
 	}
 	void DrawTileMap()
 	{
+		ALLEGRO_BITMAP* world_texture;
+		switch (currentMap)
+		{
+		case OVERWORLD:
+			world_texture = mapList[OVERWORLD];
+			break;
+		case DESERT:
+			world_texture = mapList[DESERT];
+			break;
+		default:
+			std::cout << "blad";
+			return;
+		}
+
 		for (int i = 0; i < mapSizeX; i++)
 		{
 			for (int j = 0; j < mapSizeY; j++)
@@ -69,64 +90,64 @@ public:
 				switch (map[i][j])
 				{
 				case 0:
-					al_draw_bitmap_region(world_1, 0, 0, block_size, block_size, i * block_size + offset, j * block_size, 0);
+					al_draw_bitmap_region(world_texture, 0, 0, block_size, block_size, i * block_size + offset, j * block_size, 0);
 					break;
 				case 1:
-					al_draw_bitmap_region(world_1, 16, 0, block_size, block_size, i * block_size + offset, j * block_size, 0);
+					al_draw_bitmap_region(world_texture, 16, 0, block_size, block_size, i * block_size + offset, j * block_size, 0);
 					break;
 				case 2:
-					al_draw_bitmap_region(world_1, 32, 0, block_size, block_size, i * block_size + offset, j * block_size, 0);
+					al_draw_bitmap_region(world_texture, 32, 0, block_size, block_size, i * block_size + offset, j * block_size, 0);
 					break;
 				case 3:
-					al_draw_bitmap_region(world_1, 48, 0, block_size, block_size, i * block_size + offset, j * block_size, 0);
+					al_draw_bitmap_region(world_texture, 48, 0, block_size, block_size, i * block_size + offset, j * block_size, 0);
 					break;
 				case 4:
-					al_draw_bitmap_region(world_1, 64, 0, block_size, block_size, i * block_size + offset, j * block_size, 0);
+					al_draw_bitmap_region(world_texture, 64, 0, block_size, block_size, i * block_size + offset, j * block_size, 0);
 					break;
 				case 5:
-					al_draw_bitmap_region(world_1, 80, 0, block_size, block_size, i * block_size + offset, j * block_size, 0);
+					al_draw_bitmap_region(world_texture, 80, 0, block_size, block_size, i * block_size + offset, j * block_size, 0);
 					break;
 				case 6:
-					al_draw_bitmap_region(world_1, 96, 0, block_size, block_size, i * block_size + offset, j * block_size, 0);
+					al_draw_bitmap_region(world_texture, 96, 0, block_size, block_size, i * block_size + offset, j * block_size, 0);
 					break;
 				case 7:
-					al_draw_bitmap_region(world_1, 112, 0, block_size, block_size, i * block_size + offset, j * block_size, 0);
+					al_draw_bitmap_region(world_texture, 112, 0, block_size, block_size, i * block_size + offset, j * block_size, 0);
 					break;
 				case 8:
-					al_draw_bitmap_region(world_1, 128, 0, block_size, block_size, i * block_size + offset, j * block_size, 0);
+					al_draw_bitmap_region(world_texture, 128, 0, block_size, block_size, i * block_size + offset, j * block_size, 0);
 					break;
 				case 9:
-					al_draw_bitmap_region(world_1, 144, 0, block_size, block_size, i * block_size + offset, j * block_size, 0);
+					al_draw_bitmap_region(world_texture, 144, 0, block_size, block_size, i * block_size + offset, j * block_size, 0);
 					break;
 				case 10:
-					al_draw_bitmap_region(world_1, 0, 16, block_size, block_size, i * block_size + offset, j * block_size, 0);
+					al_draw_bitmap_region(world_texture, 0, 16, block_size, block_size, i * block_size + offset, j * block_size, 0);
 					break;
 				case 11:
-					al_draw_bitmap_region(world_1, 16, 16, block_size, block_size, i * block_size + offset, j * block_size, 0);
+					al_draw_bitmap_region(world_texture, 16, 16, block_size, block_size, i * block_size + offset, j * block_size, 0);
 					break;
 				case 12:
-					al_draw_bitmap_region(world_1, 32, 16, block_size, block_size, i * block_size + offset, j * block_size, 0);
+					al_draw_bitmap_region(world_texture, 32, 16, block_size, block_size, i * block_size + offset, j * block_size, 0);
 					break;
 				case 13:
-					al_draw_bitmap_region(world_1, 48, 16, block_size, block_size, i * block_size + offset, j * block_size, 0);
+					al_draw_bitmap_region(world_texture, 48, 16, block_size, block_size, i * block_size + offset, j * block_size, 0);
 					break;
 				case 14:
-					al_draw_bitmap_region(world_1, 64, 16, block_size, block_size, i * block_size + offset, j * block_size, 0);
+					al_draw_bitmap_region(world_texture, 64, 16, block_size, block_size, i * block_size + offset, j * block_size, 0);
 					break;
 				case 15:
-					al_draw_bitmap_region(world_1, 80, 16, block_size, block_size, i * block_size + offset, j * block_size, 0);
+					al_draw_bitmap_region(world_texture, 80, 16, block_size, block_size, i * block_size + offset, j * block_size, 0);
 					break;
 				case 16:
-					al_draw_bitmap_region(world_1, 96, 16, block_size, block_size, i * block_size + offset, j * block_size, 0);
+					al_draw_bitmap_region(world_texture, 96, 16, block_size, block_size, i * block_size + offset, j * block_size, 0);
 					break;
 				case 17:
-					al_draw_bitmap_region(world_1, 112, 16, block_size, block_size, i * block_size + offset, j * block_size, 0);
+					al_draw_bitmap_region(world_texture, 112, 16, block_size, block_size, i * block_size + offset, j * block_size, 0);
 					break;
 				case 18:
-					al_draw_bitmap_region(world_1, 128, 16, block_size, block_size, i * block_size + offset, j * block_size, 0);
+					al_draw_bitmap_region(world_texture, 128, 16, block_size, block_size, i * block_size + offset, j * block_size, 0);
 					break;
 				case 19:
-					al_draw_bitmap_region(world_1, 144, 16, block_size, block_size, i * block_size + offset, j * block_size, 0);
+					al_draw_bitmap_region(world_texture, 144, 16, block_size, block_size, i * block_size + offset, j * block_size, 0);
 					break;
 				}
 			}
@@ -139,18 +160,11 @@ public:
 			
 			for (int j = 0; j < mapSizeY; j++)
 			{
-				if (map[i][j] != 19 && map[i][j] > 10)
+				if (map[i][j] > 10)
 				{
 					if (collision(p.getX()+2, p.getY()+12, block_size - 4, block_size - 12, (i * block_size + offset), (j * block_size), block_size, block_size))
 					{
 						return 1;
-					}
-				}
-				else if (map[i][j] == 19)
-				{
-					if (collision(p.getX() + 2, p.getY() + 12, block_size - 4, block_size - 12, (i * block_size + offset), (j * block_size), block_size, block_size))
-					{
-						return 2;
 					}
 				}
 				else if (map[i][j] == 10)
@@ -158,12 +172,65 @@ public:
 					if (collision(p.getX() + 2, p.getY() + 12, block_size - 4, block_size - 12, (i * block_size + offset), (j * block_size), block_size, block_size))
 					{
 						map[i][j] = 0;
-						return 3;
+						return 2;
 					}
 				}
 			}
 		}
 		return 0;
+	}
+	void changeMap(int nState)
+	{
+		//pre-proccess
+		switch (currentMap)
+		{
+		case OVERWORLD:
+			std::cout << "\tleaving OVERWORLD\n";
+			loadCounterX = 0;
+			loadCounterY = 0;
+			break;
+		case DESERT:
+			std::cout << "\tleaving DESERT\n";
+			loadCounterX = 0;
+			loadCounterY = 0;
+			break;
+		case CAVE:
+			std::cout << "\tleaving ENDHALL\n";
+			loadCounterX = 0;
+			loadCounterY = 0;
+			break;
+		case ENDHALL:
+			std::cout << "\tleaving ENDHALL\n";
+			loadCounterX = 0;
+			loadCounterY = 0;
+			break;
+		}
+
+		currentMap = nState;
+
+		//post-proccess
+		switch (currentMap)
+		{
+		case OVERWORLD:
+			std::cout << "\tentering OVERWORLD(" << currentMap << ")\n";
+			LoadTileMap("test_tile_map_0.txt");
+			break;
+		case DESERT:
+			std::cout << "\tentering DESERT(" << currentMap << ")\n";
+			LoadTileMap("test_tile_map_1.txt");
+			break;
+		case CAVE:
+			std::cout << "\tentering CAVE\n";
+			break;
+		case ENDHALL:
+			std::cout << "entering ENDHALL\n";
+			break;
+		}
+
+	}
+	int current()
+	{
+		return currentMap;
 	}
 };
 

@@ -4,8 +4,7 @@
 #include<string>
 
 
-struct PokemonAttack
-{
+struct PokemonAttack {
 	float power;		//si³a ataku
 	std::string name;
 };

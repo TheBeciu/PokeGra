@@ -27,7 +27,7 @@ private:
 	ALLEGRO_BITMAP* player;
 	int temp_item_counter = 0;
 public:
-	Player(float _px, float _py, ALLEGRO_BITMAP* _player)	{ px = _px; py = _py; player = _player; }
+	Player(float _px, float _py, ALLEGRO_BITMAP* _player)	{ px = _px * 16 + 187; py = _py * 16; player = _player; }
 	float getX()											{ return px; }
 	float getY()											{ return py; }
 	int getDIR()											{ return dir; }
@@ -82,10 +82,10 @@ public:
 		al_draw_bitmap_region(player, b_sourceX, dir * al_get_bitmap_height(player) / 4, 16, 16, px, py, 0);
 		//al_draw_rectangle(px+2, py+12, px + 14, py + 16, al_map_rgb(255, 255, 255), 0);
 	}
-	void change_pos(float _x, float _y, int _d)
+	void change_pos(int _x, int _y, int _d)
 	{
-		px = _x;
-		py = _y;
+		px = _x * 16 + 187;
+		py = _y * 16;
 		dir = _d;
 	}
 };
@@ -96,20 +96,23 @@ class Enemy
 	float posy;
 	ALLEGRO_BITMAP* sprite;
 
-	int dir = DOWN;
+	int dir;
 	int b_sourceX = 0;
 	bool moving = true;
 	bool on_map = true;
+	int movement_type;
 
 	float path1 = 300;
 	float path2 = 350;
+	float path3 = 290;
+	float path4 = 550;
 
 	//musze to tak zrobic, bo inaczej animacja przeciwnika jest aktywna podczas poruszania sie gracza;
 	float EnemyTimeSinceLastFrameSwap = 0.0;
 	float EnemyAnimSpeed = game.getAnimSpeed() / 2;
 	float EnemyAnimUpdateTime = 1.0 / EnemyAnimSpeed;
 public:
-	Enemy(float _posx, float _posy, ALLEGRO_BITMAP* _sprite) { posx = _posx; posy = _posy; sprite = _sprite; }
+	Enemy(float _posx, float _posy, int _m, int _dir, ALLEGRO_BITMAP* _sprite) { posx = _posx; posy = _posy; movement_type = _m; dir = _dir; sprite = _sprite; }
 	float getPOSX() { return posx; }
 	float getPOSY() { return posy; }
 	void setPOSX(float x) { posx = x; }
@@ -120,22 +123,45 @@ public:
 	{
 		if(on_map)
 		{
-			if (dir == DOWN)
+			if (movement_type == 0)
 			{
-				posy++;
-				if (posy == path2)
+				if (dir == DOWN)
 				{
-					dir = UP;
+					posy++;
+					if (posy == path2)
+					{
+						dir = UP;
+					}
+				}
+				else if (dir == UP)
+				{
+					posy--;
+					if (posy == path1)
+					{
+						dir = DOWN;
+					}
 				}
 			}
-			else if (dir == UP)
+			else if (movement_type == 1)
 			{
-				posy--;
-				if (posy == path1)
+				if (dir == RIGHT)
 				{
-					dir = DOWN;
+					posx++;
+					if (posx == path4)
+					{
+						dir = LEFT;
+					}
+				}
+				else if (dir == LEFT)
+				{
+					posx--;
+					if (posx == path3)
+					{
+						dir = RIGHT;
+					}
 				}
 			}
+			
 
 			if (moving)
 			{
@@ -176,6 +202,34 @@ public:
 	{
 		return on_map;
 		
+	}
+};
+class Object
+{
+	int tileX;
+	int tileY;
+	ALLEGRO_BITMAP* texture;
+	bool on_map = true;
+public:
+	Object(int _x, int _y, ALLEGRO_BITMAP* _t) { tileX = _x; tileY = _y; texture = _t; }
+	void setONMAP(bool b) { on_map = b; }
+	bool isThere() { return on_map; }
+
+	void drawObject()
+	{
+		al_draw_bitmap(texture, tileX * 16 + 187, tileY * 16, 0);
+	}
+	bool isObjectColliding(Player& p)
+	{
+		if (collision(p.getX() + 2, p.getY() + 12, 16 - 4, 16 - 12, tileX * 16 + 187, tileY * 16, 16, 16))
+		{
+			return true;
+		}
+	}
+	void changePos(int _x, int _y)
+	{
+		tileX = _x;
+		tileY = _y;
 	}
 };
 #endif
