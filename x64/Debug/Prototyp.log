@@ -1,0 +1,20 @@
+﻿  BattlePokemonAttack.cpp
+C:\Users\wmtru\Downloads\PokeGraV3\PokeGraV3\BattlePlayerMove.h(69,48): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
+  (compiling source file 'BattlePokemonAttack.cpp')
+  
+C:\Users\wmtru\Downloads\PokeGraV3\PokeGraV3\BattlePlayerMove.h(73,48): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
+  (compiling source file 'BattlePokemonAttack.cpp')
+  
+  Engine.cpp
+  game_world_prototype_1.cpp
+C:\Users\wmtru\Downloads\PokeGraV3\PokeGraV3\BattlePlayerMove.h(69,48): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
+  (compiling source file 'game_world_prototype_1.cpp')
+  
+C:\Users\wmtru\Downloads\PokeGraV3\PokeGraV3\BattlePlayerMove.h(73,48): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
+  (compiling source file 'game_world_prototype_1.cpp')
+  
+  WorldEntities.cpp
+  Generating Code...
+C:\Users\wmtru\Downloads\PokeGraV3\PokeGraV3\WorldEntities.h(200): warning C4715: 'Enemy::isEnemyColliding': not all control paths return a value
+C:\Users\wmtru\Downloads\PokeGraV3\PokeGraV3\WorldEntities.h(228): warning C4715: 'Object::isObjectColliding': not all control paths return a value
+  Prototyp.vcxproj -> C:\Users\wmtru\Downloads\PokeGraV3\PokeGraV3\x64\Debug\Prototyp.exe
