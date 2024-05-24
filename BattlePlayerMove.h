@@ -1,22 +1,28 @@
 #pragma once
 
 
+#include"Engine.h"
+#include"ResourceCache.h"
 #include"BattleState.h"
-#include"BattlePlayerAttack.h"
+#include"BattlePokemonAttack.h"
+#include"BattlePlayerPokemon.h"
+#include"BattleUseItem.h"
 
 #include<allegro5/allegro_audio.h>
 #include<allegro5/allegro.h>
 
 #include<string>
 #include<vector>
+#include<utility>
 
 
 class BattlePlayerMove : public BattleState {
-	ALLEGRO_BITMAP* bottomBorder;
-	ALLEGRO_BITMAP* topBorder;
+	Engine& engine;
+	ResourceCache& cache;
 
-	ALLEGRO_SAMPLE* battle;
-	ALLEGRO_SAMPLE_INSTANCE* battleInstance;
+	ALLEGRO_BITMAP* bottomBorder;
+
+	ALLEGRO_FONT* font;
 
 	char const* mainOptions[4];
 	int selectedOption;
@@ -24,26 +30,21 @@ class BattlePlayerMove : public BattleState {
 
 
 public:
-	~BattlePlayerMove() noexcept override {
-		al_destroy_bitmap(topBorder);
-		al_destroy_bitmap(bottomBorder);
-	}
+	BattlePlayerMove(Engine& _engine,  ResourceCache& _cache)
+	: engine{_engine}
+	, cache{_cache}
 
+	, bottomBorder{cache.bitmap("battle/bottomBorder.png")}
 
-	BattlePlayerMove(ALLEGRO_SAMPLE* _battle,  ALLEGRO_SAMPLE_INSTANCE* _battleInstance)
-	: bottomBorder{al_load_bitmap("battle/bottomBorder.png")}
-	, topBorder{al_load_bitmap("battle/topBorder.png")}
-	, battle{_battle}
-	, battleInstance{_battleInstance}
+	, font{cache.font("battle/pokemon.ttf")}
+
 	, mainOptions{"FIGHT", "POKEMON", "BAG", "RUN"}
 	, selectedOption{-1}
 	, currentOption{0}
 	{}
 
 
-	BattleState* handleInput(Engine& engine,  PokemonTrainer& player,
-			PokemonTrainer& enemy) override {
-
+	BattleState* handleInput(PokemonTrainer& player,  PokemonTrainer& enemy) override {
 		if (selectedOption==-1) {
 			if (engine.checkKeyDownOnce(ALLEGRO_KEY_LEFT))
 				currentOption = (4+currentOption-1) % 4;
@@ -55,10 +56,7 @@ public:
 				currentOption = (currentOption + 2) % 4;
 			else if (engine.checkKeyDownOnce(ALLEGRO_KEY_ENTER)) {
 				if (currentOption == 3) {
-					al_stop_sample_instance(battleInstance);
-					al_detach_sample_instance(battleInstance);
-					al_destroy_sample_instance(battleInstance);
-					al_destroy_sample(battle);
+					cache.removeSoundSample("battle/battle.mp3");
 					enemy.hitPoints = 0.0f;
 					return BattleState::battleEnd();
 				}
@@ -67,38 +65,53 @@ public:
 			}
 		} else if (selectedOption == 0) {
 			std::size_t const SIZE = player.pokemons.front().attacks.size()+1;	//attacks + cancel
-
-			if (engine.checkKeyDownOnce(ALLEGRO_KEY_UP) && 0<currentOption)
-				--currentOption;
-			else if (engine.checkKeyDownOnce(ALLEGRO_KEY_DOWN) && currentOption<SIZE-1)
-				++currentOption;
-			else if (engine.checkKeyDownOnce(ALLEGRO_KEY_ENTER) && currentOption==0) {
+			if (engine.checkKeyDownOnce(ALLEGRO_KEY_LEFT))
+				currentOption = (SIZE + currentOption - 1) % SIZE;
+			else if (engine.checkKeyDownOnce(ALLEGRO_KEY_RIGHT))
+				currentOption = (currentOption + 1) % SIZE;
+			else if (engine.checkKeyDownOnce(ALLEGRO_KEY_UP))
+				currentOption = (SIZE + currentOption - 2) % SIZE;
+			else if (engine.checkKeyDownOnce(ALLEGRO_KEY_DOWN))
+				currentOption = (currentOption + 2) % SIZE;
+			else if (engine.checkKeyDownOnce(ALLEGRO_KEY_ENTER)) {
+				if (-1 < currentOption  &&  currentOption < SIZE - 1) {
+					std::swap(player.pokemons.front().attacks.front(),
+						player.pokemons.front().attacks[currentOption]);
+					return new BattlePokemonAttack(engine, cache, false);
+				}
 				selectedOption = -1;
 				currentOption = 0;
-			} else if (engine.checkKeyDownOnce(ALLEGRO_KEY_ENTER))
-				return new BattlePlayerAttack(player.pokemons.front().attacks[currentOption-1],
-					battle, battleInstance);
+			}
 		} else if (selectedOption == 1) {
 			std::size_t const SIZE = player.pokemons.size()+1;	//pokemons + cancel
-
-			if (engine.checkKeyDownOnce(ALLEGRO_KEY_UP) && 0<currentOption)
+			if (engine.checkKeyDownOnce(ALLEGRO_KEY_LEFT) && 0<currentOption)
 				--currentOption;
-			else if (engine.checkKeyDownOnce(ALLEGRO_KEY_DOWN) && currentOption<SIZE-1)
+			else if (engine.checkKeyDownOnce(ALLEGRO_KEY_RIGHT) && currentOption<SIZE-1)
 				++currentOption;
 			else  if (engine.checkKeyDownOnce(ALLEGRO_KEY_ENTER)) {
+				if (0 < currentOption  &&  currentOption < SIZE-1) {
+					std::swap(player.pokemons.front(), player.pokemons[currentOption]);
+					return new BattlePlayerPokemon(engine, cache,
+						new BattlePokemonAttack(engine, cache, true));
+				}
 				selectedOption = -1;
 				currentOption = 0;
 			}
 		} else if (selectedOption == 2) {
-			std::size_t const SIZE = 1;	//cancel
-
-			if (engine.checkKeyDownOnce(ALLEGRO_KEY_UP) && 0<currentOption)
+			std::size_t const SIZE = player.items.size() + 1;	//items + cancel
+			if (engine.checkKeyDownOnce(ALLEGRO_KEY_LEFT) && 0<currentOption)
 				--currentOption;
-			else if (engine.checkKeyDownOnce(ALLEGRO_KEY_DOWN) && currentOption<SIZE-1)
+			else if (engine.checkKeyDownOnce(ALLEGRO_KEY_RIGHT) && currentOption<SIZE-1)
 				++currentOption;
 			else  if (engine.checkKeyDownOnce(ALLEGRO_KEY_ENTER)) {
-				selectedOption = -1;
-				currentOption = 0;
+				if (currentOption == SIZE-1) {
+					selectedOption = -1;
+					currentOption = 0;
+				} else {
+					//std::swap(player.items.front(), player.items[currentOption]);
+					BattlePokemonAttack* nextState = new BattlePokemonAttack(engine, cache, true);
+					return new BattleUseItem(engine, cache, player, nextState);
+				}
 			}
 		}
 
@@ -106,45 +119,26 @@ public:
 	}
 
 
-	BattleState* update(Engine& engine, PokemonTrainer& player, PokemonTrainer& enemy) override {
+	BattleState* update(PokemonTrainer& player, PokemonTrainer& enemy) override {
 		float x = engine.getDispW()/2.0f - 420.0f;
 		float y = engine.getDispH() - 170.0f;
 		al_draw_bitmap(bottomBorder, x, y, 0);
 
 		if (selectedOption == -1)
-			drawMainOptions(engine);
-		else if (selectedOption == 0) {
-			std::vector<std::string> options{"Cancel"};
-			for (PokemonAttack const& attack : player.pokemons.front().attacks)
-				options.emplace_back(attack.name);
-			drawOptions(engine, options);
-		} else if (selectedOption == 1) {
-			std::vector<std::string> options{"Cancel"};
-			for (Pokemon const& pokemon : player.pokemons)
-				options.emplace_back(
-					pokemon.name + " (HP: " + std::to_string(pokemon.hitPoints) + ")");
-			drawOptions(engine, options);
-		} else if (selectedOption == 2) {
-			std::vector<std::string> options{"Cancel"};
-			drawOptions(engine, options);
-		}
+			drawMainOptions();
+		else if (selectedOption == 0)
+			drawAttacksOptions(player);
+		else if (selectedOption == 1)
+			drawPokemonsOptions(player);
+		else if (selectedOption == 2)
+			drawBagOptions(player);
 
-		x = player.pokemons.front().battleX;
-		y = player.pokemons.front().battleY;
-		al_draw_textf(engine.getFont(), al_map_rgb(0, 0, 0), 50.0f+x, y-60.0f, 0,
-			"%s", player.pokemons.front().name.c_str());
-		al_draw_filled_rectangle(50.0f+x, y-45.0f,
-			50.0f+x+player.pokemons.front().hitPoints,  y-40.0f,  al_map_rgb(0, 255, 0));
-		al_draw_bitmap(topBorder, x, y-60.0f, 0);
+		player.pokemons.front().battleNameDraw(cache);
+		player.pokemons.front().battleStatsDraw(cache);
 		player.pokemons.front().battleImgDraw();
 
-		x = enemy.pokemons.front().battleX;
-		y = enemy.pokemons.front().battleY;
-		al_draw_textf(engine.getFont(), al_map_rgb(0, 0, 0), 50.0f+x, y-60.0f, 0,
-			"%s", enemy.pokemons.front().name.c_str());
-		al_draw_filled_rectangle(50.0f+x, y-45.0f, 50.0f+x+enemy.pokemons.front().hitPoints, y-40.0f,
-			al_map_rgb(0, 255, 0));
-		al_draw_bitmap(topBorder, x, y-60.0f, 0);
+		enemy.pokemons.front().battleNameDraw(cache);
+		enemy.pokemons.front().battleStatsDraw(cache);
 		enemy.pokemons.front().battleImgDraw();
 
 		return nullptr;
@@ -152,21 +146,54 @@ public:
 
 
 private:
-	void drawMainOptions(Engine& engine) {
+	void drawMainOptions() {
 		int optionId = 0;
-		for (float y=60.0f; y<130.0f; y+=60.0f)
-		for (float x=60.0f; x<130.0f; x+=60.0f) {
-			al_draw_textf(engine.getFont(), al_map_rgb(0, 0, 0), x, engine.getDispH()-170+y, 0,
+		for (float y=60.0f; y<130.0f; y+=50.0f)
+		for (float x=60.0f; x<190.0f; x+=120.0f) {
+			al_draw_textf(font, al_map_rgb(0, 0, 0), x, engine.getDispH()-180+y, 0,
 				"%s%s", (currentOption==optionId) ? ">" : " ", mainOptions[optionId++]);
 		}
 	}
 
 
-	void drawOptions(Engine& engine,  std::vector<std::string> const& options) {
-		int optionId = currentOption;
-		for (float y=60.0f;  y<130.0f && optionId<options.size();  y+=60.0f) {
-			al_draw_textf(engine.getFont(), al_map_rgb(0, 0, 0), 60.0f, engine.getDispH()-170+y, 0,
-				"%s%s", (currentOption==optionId) ? ">" : " ", options[optionId++].c_str());
+	void drawBagOptions(PokemonTrainer& player) {
+		std::vector<Item> const& options = player.items;
+		int optionId = 0;
+		float x = 60.0f;
+		for (;  x<310.0f && optionId<options.size();  x+=120.0f) {
+			al_draw_textf(font, al_map_rgb(0, 0, 0), x, engine.getDispH()-100, 0,
+				"%s%s", (currentOption==optionId) ? ">" : " ", options[optionId++].name.c_str());
 		}
+		al_draw_textf(font, al_map_rgb(0, 0, 0), x, engine.getDispH() - 100, 0,
+			"%sCancel", (currentOption == optionId) ? ">" : " ");
+	}
+
+
+	void drawPokemonsOptions(PokemonTrainer& player) {
+		std::vector<Pokemon>& options = player.pokemons;
+		int optionId = 0;
+		float x = 60.0f;
+		for (; x < 550.0f && optionId < options.size(); x += 250.0f) {
+			al_draw_textf(font, al_map_rgb(0, 0, 0), x, engine.getDispH() - 100, 0,
+				"%s%s (%d)", (currentOption == optionId) ? ">" : " ",
+				options[optionId].name.c_str(),
+				(int)options[optionId].hitPoints);
+			++optionId;
+		}
+		al_draw_textf(font, al_map_rgb(0, 0, 0), x, engine.getDispH() - 100, 0,
+			"%sCancel", (currentOption == optionId) ? ">" : " ");
+	}
+
+
+	void drawAttacksOptions(PokemonTrainer& player) {
+		std::vector<PokemonAttack>& options = player.pokemons.front().attacks;
+		int optionId = 0;
+		for (float y = 60.0f; y < 130.0f; y += 50.0f)
+		for (float x = 60.0f; x < 250.0f; x += 180.0f) {
+			al_draw_textf(font, al_map_rgb(0, 0, 0), x, engine.getDispH() - 180 + y, 0,
+				"%s%s", (currentOption == optionId) ? ">" : " ", options[optionId++].name.c_str());
+		}
+		al_draw_textf(font, al_map_rgb(0, 0, 0), 450.0f, engine.getDispH() - 70, 0,
+			"%sCancel", (currentOption == optionId) ? ">" : " ");
 	}
 };

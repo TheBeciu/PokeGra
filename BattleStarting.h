@@ -1,52 +1,41 @@
 #pragma once
 
 
+#include"Engine.h"
+#include"ResourceCache.h"
 #include"BattleState.h"
-#include"BattleFaceToFace.h"
+#include"BattleShowEnemies.h"
 
 #include<allegro5/allegro_audio.h>
 #include<allegro5/allegro.h>
 
 
 class BattleStarting : public BattleState {
+	Engine& engine;
+	ResourceCache& cache;
+
 	ALLEGRO_BITMAP* largePokeball1;
 	ALLEGRO_BITMAP* largePokeball2;
 	ALLEGRO_BITMAP* largePokeball;
 
-	ALLEGRO_SAMPLE* battleStart;
 	ALLEGRO_SAMPLE_INSTANCE* battleStartInstance;
-	ALLEGRO_SAMPLE* battle;
-	ALLEGRO_SAMPLE_INSTANCE* battleInstance;
 	
 	float elapsedSeconds;
 
 
 public:
-	~BattleStarting() noexcept override {
-		al_stop_sample_instance(battleStartInstance);
-		al_detach_sample_instance(battleStartInstance);
-		al_destroy_sample_instance(battleStartInstance);
-		al_destroy_sample(battleStart);
+	BattleStarting(Engine& _engine,  ResourceCache& _cache)
+	: engine{_engine}
+	, cache{_cache}
 
-		al_destroy_bitmap(largePokeball2);
-		al_destroy_bitmap(largePokeball1);
-	}
+	, largePokeball1{cache.bitmap("battle/largePokeball1.png")}
+	, largePokeball2{cache.bitmap("battle/largePokeball2.png")}
+	, largePokeball{ largePokeball1 }
 
-	
-	BattleStarting()
-	: largePokeball1{al_load_bitmap("battle/largePokeball1.png")}
-	, largePokeball2{al_load_bitmap("battle/largePokeball2.png")}
-	, largePokeball{largePokeball1}
+	, battleStartInstance{cache.soundSampleInstance("battle/battleStart.mp3")}
 
-	, battleStart{al_load_sample("battle/battleStart.mp3")}
-	, battleStartInstance{al_create_sample_instance(battleStart)}
-	//poni¿szy dŸwiêk u¿ywamy w nastêpnym stanie, ale ³adujemy tutaj, aby by³ gotowy do odtworzenia
-	, battle{al_load_sample("battle/battle.mp3")}
-	, battleInstance{al_create_sample_instance(battle)}
-
-	, elapsedSeconds{0.0f}
+	, elapsedSeconds{}	//0.0f
 	{
-		al_attach_sample_instance_to_mixer(battleStartInstance, al_get_default_mixer());
 		al_play_sample_instance(battleStartInstance);
 	}
 
@@ -58,7 +47,7 @@ public:
 	//}
 
 
-	BattleState* update(Engine& engine,  PokemonTrainer& player,  PokemonTrainer& enemy) override {
+	BattleState* update(PokemonTrainer& player, PokemonTrainer& enemy) override {
 		elapsedSeconds += engine.getDeltaTime();
 
 		float const x = engine.getDispW()/2.0f - 230.0f;
@@ -72,9 +61,8 @@ public:
 		al_draw_bitmap(largePokeball, x, y, 0);
 
 		//mo¿na usun¹æ alokacjê pamiêci, je¿eli wydajnoœæ jest niesatysfakcjonuj¹ca
-		if (!al_get_sample_instance_playing(battleStartInstance)) {
-			return new BattleFaceToFace{engine,  battle, battleInstance};
-		}
+		if (!al_get_sample_instance_playing(battleStartInstance))
+			return new BattleShowEnemies{engine, cache};
 
 		return nullptr;
 	}

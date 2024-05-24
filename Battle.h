@@ -5,6 +5,7 @@
 #include"Engine.h"
 #include"BattleState.h"
 #include"BattleStarting.h"
+#include"ResourceCache.h"
 
 #include<memory>
 
@@ -13,8 +14,37 @@ class Battle {
 	std::unique_ptr<BattleState> startingState;	//pocz¹tkowo zawiera nullptr
 	std::unique_ptr<BattleState> state;			//pocz¹tkowo zawiera nullptr
 
+
+	void preloadResources() {
+		cache.bitmap("battle/largePokeball1.png");
+		cache.bitmap("battle/largePokeball2.png");
+		cache.soundSampleInstance("battle/battleStart.mp3");
+		cache.soundSampleInstance("battle/battle.mp3");
+
+		cache.bitmap("battle/bottomBorder.png");
+		cache.bitmap("battle/smallPokeball.png");
+		cache.bitmap("battle/topBorder.png");
+		cache.font("battle/pokemon.ttf");
+
+		cache.bitmap("battle/dust1.png");
+		cache.bitmap("battle/dust2.png");
+		cache.bitmap("battle/dust3.png");
+		cache.bitmap("battle/dust4.png");
+		cache.soundSample("battle/pokeballPoof.mp3");
+
+		cache.bitmap("battle/wish.png");
+		cache.soundSample("battle/wish.mp3");
+
+		cache.soundSample("battle/dead.mp3");
+
+		cache.soundSample("battle/lost.mp3");
+		cache.soundSample("battle/win.mp3");
+	}
+
+
 public:
 	Engine& engine;
+	ResourceCache& cache;
 	PokemonTrainer* player;
 	PokemonTrainer* enemy;
 
@@ -22,8 +52,11 @@ public:
 	Battle(Battle&&) = delete;	//kopiowanie i przenoszenie wy³¹czone
 
 
-	explicit Battle(Engine& _engine)
+	Battle(Engine& _engine,  ResourceCache& _resourceCache)
 	: engine{_engine}
+	, cache{_resourceCache}
+	, player{}
+	, enemy{}
 	{}
 
 
@@ -41,13 +74,13 @@ public:
 		this->player = player;
 		this->enemy = enemy;
 
-		//mo¿na usun¹æ alokacjê pamiêci, je¿eli wydajnoœæ jest niesatysfakcjonuj¹ca
-		startingState.reset(new BattleStarting{});
+		preloadResources();
+		startingState.reset(new BattleStarting{engine, cache});
 	}
 
 
 	void handleKeyboardEvents() {
-		BattleState* newState = state->handleInput(engine, *player, *enemy);
+		BattleState* newState = state->handleInput(*player, *enemy);
 		if (newState == BattleState::battleEnd())
 			state.reset(nullptr);
 		else if (newState)
@@ -56,7 +89,7 @@ public:
 
 
 	void updateStarting() {
-		BattleState* newState = startingState->update(engine, *player, *enemy);
+		BattleState* newState = startingState->update(*player, *enemy);
 		if (newState) {
 			startingState.reset(nullptr);
 			state.reset(newState);
@@ -65,7 +98,7 @@ public:
 
 
 	void update() {
-		BattleState* newState = state->update(engine, *player, *enemy);
+		BattleState* newState = state->update(*player, *enemy);
 		if (newState == BattleState::battleEnd())
 			state.reset(nullptr);
 		else if (newState)

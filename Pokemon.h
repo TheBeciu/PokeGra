@@ -7,53 +7,43 @@
 #include<vector>
 
 #include"PokemonAttack.h"
+#include"ResourceCache.h"
 
 
-class Pokemon {
-	ALLEGRO_BITMAP* battleImg;
-
-
-public:
-	std::vector<PokemonAttack> attacks;
+struct Pokemon {
 	std::string name;
-	float battleX;
-	float battleY;
-	float hitPoints;
+
+	ALLEGRO_BITMAP* battleImg;
+	float battleX, battleY;
+	float maxHitPoints, hitPoints;
+	float maxAttack, attack;
+	float maxDefence, defence;
+
+	std::vector<PokemonAttack> attacks;
 
 
-	~Pokemon() noexcept {
-		al_destroy_bitmap(battleImg);
+	void battleNameDraw(ResourceCache& cache) const {
+		al_draw_textf(cache.font("battle/pokemon.ttf"),  al_map_rgb(0, 0, 0),
+			30.0f + battleX,  battleY - 85.0f, 0,  "%s",  name.c_str());
 	}
 
 
-	Pokemon(std::string const& _name, float _hitPoints, char const* _battleImgPath)
-		: battleImg(al_load_bitmap(_battleImgPath))
-		, battleX{}
-		, battleY{}
-		, hitPoints{ _hitPoints }
-		, name{ _name }
-	{}
+	void battleStatsDraw(ResourceCache& cache) const {
+		al_draw_bitmap(cache.bitmap("battle/topBorder.png"),  battleX,  battleY - 60.0f,  0);
 
+		al_draw_filled_rectangle(27.0f + battleX,  battleY - 58.0f,
+			33.0f + battleX + 100.0f * 1.45f,  battleY - 27.0f,
+			al_map_rgb(0, 0, 0));
 
-	//przenoszenie wy³¹cza kopiowanie
-
-
-	Pokemon(Pokemon&& other) noexcept
-		: battleImg{ std::exchange(other.battleImg, nullptr) }
-		, battleX{ other.battleX }
-		, battleY{ other.battleY }
-		, hitPoints{ other.hitPoints }
-		, name{ std::move(other.name) }
-	{}
-
-
-	Pokemon& operator=(Pokemon&& other) noexcept {
-		std::swap(battleImg, other.battleImg);
-		std::swap(battleX, other.battleX);
-		std::swap(battleY, other.battleY);
-		std::swap(hitPoints, other.hitPoints);
-		std::swap(name, other.name);
-		return *this;
+		al_draw_filled_rectangle(30.0f + battleX,  battleY - 55.0f,
+			30.0f + battleX + hitPoints * 1.45f,  battleY - 50.0f,
+			al_map_rgb(0, 255, 0));
+		al_draw_filled_rectangle(30.0f + battleX,  battleY - 45.0f,
+			30.0f + battleX + attack * 1.45f,  battleY - 40.0f,
+			al_map_rgb(255, 0, 0));
+		al_draw_filled_rectangle(30.0f + battleX,  battleY - 35.0f,
+			30.0f + battleX + defence * 1.45f,  battleY - 30.0f,
+			al_map_rgb(0, 0, 255));
 	}
 
 

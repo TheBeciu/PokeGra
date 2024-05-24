@@ -22,8 +22,135 @@
 #include "WorldEntities.h"
 #include "WorldMap.h"
 
-#include "Battle.h"
 #include "PokemonTrainer.h"
+#include "Battle.h"
+#include "ResourceCache.h"
+#include "Item.h"
+
+
+
+std::vector<PokemonAttack> createBasicPokemonAttacks(ResourceCache& resCache) {
+	return std::vector<PokemonAttack>{
+		PokemonAttack{ //-30 do ataku przeciwnika
+			"Growl",
+			0.0f, -30.0f, 0.0f,
+			0.0f, 0.0f,
+			resCache.bitmap("battle/growl.png"), resCache.soundSample("battle/growl.mp3")
+		},
+		PokemonAttack{ //-30 do obrony przeciwnika
+			"Tail Whip",
+			0.0f, 0.0f, -30.0f,
+			0.0f, 0.0f,
+			resCache.bitmap("battle/tailWhip.png"), resCache.soundSample("battle/tailWhip.mp3"),
+
+		},
+		PokemonAttack{ //przywraca do 15 punktów zdrowia
+			"Wish",
+			15.0f, 0.0f, 0.0f,
+			0.0f, 0.0f,
+			resCache.bitmap("battle/wish.png"), resCache.soundSample("battle/wish.mp3")
+		}
+	};
+}
+
+
+Pokemon createPikachu(ResourceCache& resCache) {
+	Pokemon pokemon{
+		"Pikachu",
+		resCache.bitmap("battle/playerPikachu.png"), 
+		0.0f, 0.0f,
+		100.0f, 100.0f,
+		60.0f, 60.0f,
+		40.0f, 40.0f
+	};
+	pokemon.attacks = createBasicPokemonAttacks(resCache);
+	pokemon.attacks.push_back(PokemonAttack{
+		"Thunder",
+		-50.0f, 0.0f, 0.0f,
+		0.0f, 0.0f,
+		resCache.bitmap("battle/thunderShock.png"), resCache.soundSample("battle/thunderShock.mp3")
+	});
+
+	return pokemon;
+}
+
+
+Pokemon createSquirtle(ResourceCache& resCache) {
+	Pokemon pokemon{
+		"Squirtle",
+		resCache.bitmap("battle/playerSquirtle.png"), 
+		0.0f, 0.0f,
+		100.0f, 100.0f,
+		60.0f, 60.0f,
+		40.0f, 40.0f
+	};
+	pokemon.attacks = createBasicPokemonAttacks(resCache);
+	pokemon.attacks.push_back(PokemonAttack{
+		"Water Gun",
+		-50.0f, 0.0f, 0.0f,
+		0.0f, 0.0f,
+		resCache.bitmap("battle/waterGun.png"), resCache.soundSample("battle/waterGun.mp3")
+	});
+
+	return pokemon;
+}
+
+
+Pokemon createBulbasaur(ResourceCache& resCache) {
+	Pokemon pokemon{
+		"Bulbasaur",
+		resCache.bitmap("battle/enemyBulbasaur.png"), 
+		0.0f, 0.0f,
+		100.0f, 100.0f,
+		60.0f, 60.0f,
+		40.0f, 40.0f
+	};
+	pokemon.attacks = createBasicPokemonAttacks(resCache);
+	pokemon.attacks.push_back(PokemonAttack{
+		"Vine Whip",
+		-50.0f, 0.0f, 0.0f,
+		0.0f, 0.0f,
+		resCache.bitmap("battle/vineWhip.png"), resCache.soundSample("battle/vineWhip.mp3")
+	});
+
+	return pokemon;
+}
+
+
+Pokemon createCharmander(ResourceCache& resCache) {
+	Pokemon pokemon{
+		"Charmander",
+		resCache.bitmap("battle/enemyCharmander.png"), 
+		0.0f, 0.0f,
+		100.0f, 100.0f,
+		60.0f, 60.0f,
+		40.0f, 40.0f
+	};
+	pokemon.attacks = createBasicPokemonAttacks(resCache);
+	pokemon.attacks.push_back(PokemonAttack{
+		"Ember",
+		-50.0f, 0.0f, 0.0f,
+		0.0f, 0.0f,
+		resCache.bitmap("battle/ember.png"), resCache.soundSample("battle/ember.mp3")
+	});
+
+	return pokemon;
+}
+
+
+std::unique_ptr<PokemonTrainer> createEnemy(ResourceCache& resCache) {
+	std::unique_ptr<PokemonTrainer> enemy{new PokemonTrainer{
+		"Lance",
+		resCache.bitmap("enemyLance.png"),  332.0f, 60.0f,
+		resCache.bitmap("battle/enemyLance.png"),  0.0f, 0.0f,
+		100.0f
+	}};
+	enemy->pokemons.push_back(createBulbasaur(resCache));
+	enemy->pokemons.push_back(createCharmander(resCache));
+	enemy->items.push_back(Item{ "Potion", 75.0f, 0.0f, 0.0f });
+	return enemy;
+}
+
 
 int main()
 {
@@ -31,6 +158,7 @@ int main()
 	
 	al_init();
 	al_init_font_addon();
+	al_init_ttf_addon();
 	al_init_native_dialog_addon();
 	al_init_primitives_addon();
 	al_init_image_addon();
@@ -66,17 +194,19 @@ int main()
 	al_register_event_source(queue, al_get_display_event_source(game.display));
 	al_register_event_source(queue, al_get_timer_event_source(timer));
 
-	Battle battle{ game };
+	ResourceCache resCache;
+	Battle battle{game, resCache};
+	PokemonTrainer player{
+		"Bonifacy",
+		resCache.bitmap("enemyLance.png"),  0.0f, 0.0f,
+		resCache.bitmap("battle/player.png"),  0.0f, 0.0f,
+		100.0f
+	};
+	player.pokemons.push_back(createPikachu(resCache));
+	player.pokemons.push_back(createSquirtle(resCache));
+	player.items.push_back(Item{"Potion", 75.0f, 0.0f, 0.0f});
 
-	PokemonTrainer player{ "Bonifacy", 0.0,0.0, 100.0f, "enemyLance.png","battle/player.png" };
-	player.pokemons.emplace_back("Squirtle", 100.0f, "battle/playerSquirtle.png");
-	player.pokemons.back().attacks.push_back({ 50.0f, std::string{"Tackle"} });
-
-	std::vector<std::unique_ptr<PokemonTrainer>> enemies;
-	enemies.emplace_back(
-		new PokemonTrainer{ "Lance", 332.0,60.0, 100.0f, "enemyLance.png","battle/enemyLance.png" });
-	enemies.back()->pokemons.emplace_back("Charmander", 100.0f, "battle/enemyCharmander.png");
-	enemies.back()->pokemons.back().attacks.push_back({ 50.0f, std::string{"Scratch"} });
+	std::unique_ptr<PokemonTrainer> enemy;
 
 	//TileMap test1("test_tile_map_0.txt", 3, 3);
 	//TileMap test2("test_tile_map_1.txt", 15, 15);
@@ -130,7 +260,8 @@ int main()
 					enemy1.update_enemy();
 					if (enemy1.isEnemyColliding(trainer) == 1)
 					{
-						battle.start(&player, enemies[0].get());
+						enemy = createEnemy(resCache);
+						battle.start(&player, enemy.get());
 						enemy1.setONMAP(false);
 						game.changeState(state, FIGHT);
 					}
@@ -140,7 +271,8 @@ int main()
 					enemy2.update_enemy();
 					if (enemy2.isEnemyColliding(trainer) == 1)
 					{
-						battle.start(&player, enemies[0].get());
+						enemy = createEnemy(resCache);
+						battle.start(&player, enemy.get());
 						enemy2.setONMAP(false);
 						game.changeState(state, FIGHT);
 					}

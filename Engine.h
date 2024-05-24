@@ -41,9 +41,7 @@ private:
 	float animUpdateTime = 1.0 / animSpeed;
 	float timeSinceLastFrameSwap = 0.0;
 public:
-	ALLEGRO_FONT* getFont() { return font; }
-	void setFont(ALLEGRO_FONT* font) { this->font = font; }
-	
+
 	float getFPS()								{ return FPS; }
 	float getFrames()							{ return frames; }
 	int getMSpeed()								{ return mSpeed; }

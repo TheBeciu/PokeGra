@@ -1,7 +1,6 @@
 #pragma once
 
 
-#include"Engine.h"
 #include"PokemonTrainer.h"
 
 
@@ -26,13 +25,12 @@ public:
 	{}
 
 
-	virtual BattleState* handleInput(Engine& engine,  PokemonTrainer& player,
-			PokemonTrainer& enemy) {
+	virtual BattleState* handleInput(PokemonTrainer& player,  PokemonTrainer& enemy) {
 		return nullptr;
 	}
 
 
-	virtual BattleState* update(Engine& engine,  PokemonTrainer& player,  PokemonTrainer& enemy) {
+	virtual BattleState* update(PokemonTrainer& player,  PokemonTrainer& enemy) {
 		return nullptr;
 	}
 };
