@@ -1,8 +1,3 @@
-//Prototyp projektu
-//Poruszanie sie po swiecie
-//Testowanie kolizji
-//
-//TODO: Kolizja do zrobienia, dodanie mapy
 #include <allegro5/allegro.h>
 #include <allegro5/allegro_native_dialog.h>
 #include <allegro5/allegro_font.h>
@@ -174,6 +169,7 @@ int main()
 	ALLEGRO_BITMAP* player_worldbitmap = al_load_bitmap("player_temp.png");
 	ALLEGRO_BITMAP* enemy_worldbitmap = al_load_bitmap("enemy_temp.png");
 	ALLEGRO_BITMAP* portal_texture = al_load_bitmap("portal.png");
+	ALLEGRO_BITMAP* item_potion = al_load_bitmap("potion.png");
 
 	al_install_keyboard();
 
@@ -225,9 +221,14 @@ int main()
 	game.changeState(state, MENU);
 
 	Player trainer(test1.getSpawnX(), test1.getSpawnY(), player_worldbitmap);
-	Enemy enemy1(300, 300, 0, DOWN, enemy_worldbitmap);
-	Enemy enemy2(280, 370, 1, RIGHT, enemy_worldbitmap);
-	Object portal(15, 15, portal_texture);
+	Enemy enemy1(7 * block_size + offset, 22 * block_size, 1, DOWN, enemy_worldbitmap);
+	Enemy enemy2(23 * block_size + offset, 9 * block_size, 0, DOWN, enemy_worldbitmap);
+	Enemy enemy3(15 * block_size + offset, 26 * block_size, 0, RIGHT, enemy_worldbitmap);
+	Enemy enemy4(1 * block_size + offset, 11 * block_size, 2, DOWN, enemy_worldbitmap);
+	Enemy enemy5(20 * block_size + offset, 11 * block_size, 3, RIGHT, enemy_worldbitmap);
+	Object portal(25, 5, portal_texture, PORTAL);
+	Object potion(11, 7, item_potion, POTION);
+	Object potion2(15, 28, item_potion, POTION);
 
 	//gameloop
 	al_start_timer(timer);
@@ -265,15 +266,39 @@ int main()
 						enemy1.setONMAP(false);
 						game.changeState(state, FIGHT);
 					}
-				}
-				else if(test1.current() == DESERT)
-				{
 					enemy2.update_enemy();
 					if (enemy2.isEnemyColliding(trainer) == 1)
 					{
 						enemy = createEnemy(resCache);
 						battle.start(&player, enemy.get());
 						enemy2.setONMAP(false);
+						game.changeState(state, FIGHT);
+					}
+				}
+				else if(test1.current() == DESERT)
+				{
+					enemy3.update_enemy();
+					if (enemy3.isEnemyColliding(trainer) == 1)
+					{
+						enemy = createEnemy(resCache);
+						battle.start(&player, enemy.get());
+						enemy3.setONMAP(false);
+						game.changeState(state, FIGHT);
+					}
+					enemy4.update_enemy();
+					if (enemy4.isEnemyColliding(trainer) == 1)
+					{
+						enemy = createEnemy(resCache);
+						battle.start(&player, enemy.get());
+						enemy4.setONMAP(false);
+						game.changeState(state, FIGHT);
+					}
+					enemy5.update_enemy();
+					if (enemy5.isEnemyColliding(trainer) == 1)
+					{
+						enemy = createEnemy(resCache);
+						battle.start(&player, enemy.get());
+						enemy5.setONMAP(false);
 						game.changeState(state, FIGHT);
 					}
 				}
@@ -290,13 +315,25 @@ int main()
 					if (test1.current() == OVERWORLD)
 					{
 						test1.changeMap(DESERT);
-						portal.changePos(15, 25);
+						portal.changePos(13, 25);
 						trainer.change_pos(15, 3, LEFT);
+						potion.changePos(14, 3);
+						potion.setONMAP(true);
 					}
 					else if (test1.current() == DESERT)
 					{
 						game.changeState(state, ENDSCREEN);
 					}
+				}
+				if (potion.isObjectColliding(trainer))
+				{
+					player.items.push_back(Item{ "Potion", 75.0f, 0.0f, 0.0f });
+					potion.setONMAP(false);
+				}
+				if (potion2.isObjectColliding(trainer))
+				{
+					player.items.push_back(Item{ "Potion", 75.0f, 0.0f, 0.0f });
+					potion2.setONMAP(false);
 				}
 			}
 			else if (state == FIGHT)
@@ -321,8 +358,12 @@ int main()
 				{
 					game.changeState(state, MENU);
 					test1.changeMap(-1);
+					portal.changePos(25, 5);
 					enemy1.setONMAP(true);
 					enemy2.setONMAP(true);
+					enemy3.setONMAP(true);
+					enemy4.setONMAP(true);
+					enemy5.setONMAP(true);
 				}
 			}
 
@@ -354,17 +395,29 @@ int main()
 					test1.DrawTileMap();
 					if (enemy1.isThere())
 						enemy1.draw_enemy();
+					if (enemy2.isThere())
+						enemy2.draw_enemy();
 					if (portal.isThere())
 						portal.drawObject();
+					if (potion.isThere())
+						potion.drawObject();
 				}
 				else if (test1.current() == DESERT)
 				{
 					al_clear_to_color(al_map_rgb(100, 50, 10));
 					test1.DrawTileMap();
-					if (enemy2.isThere())
-						enemy2.draw_enemy();
+					if (enemy3.isThere())
+						enemy3.draw_enemy();
+					if (enemy4.isThere())
+						enemy4.draw_enemy();
+					if (enemy5.isThere())
+						enemy5.draw_enemy();
 					if (portal.isThere())
 						portal.drawObject();
+					if (potion.isThere())
+						potion.drawObject();
+					if (potion2.isThere())
+						potion2.drawObject();
 				}
 
 				trainer.draw_player();

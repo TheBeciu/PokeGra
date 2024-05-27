@@ -11,6 +11,9 @@ ALLEGRO_BITMAP* world_2;
 
 enum MAP { OVERWORLD, DESERT, CAVE, ENDHALL };
 
+//const int block_size = 16;
+//const int offset = 187;		//offset x
+
 void sprites_init()
 {
 	world_1 = al_load_bitmap("world1_bitmap.png");
@@ -25,14 +28,14 @@ void sprites_deinit()
 
 class TileMap
 {
-	const int block_size = 16;
+	//const int block_size = 16;
 	int loadCounterX = 0;
 	int loadCounterY = 0;
 	int mapSizeX;
 	int mapSizeY;
 	int map[30][30];
 	const char* mapfile;
-	const int offset = 187;
+	//const int offset = 187;
 	int playerStartTileX = 3;
 	int playerStartTileY = 3;
 	int currentMap = -1;
@@ -212,11 +215,11 @@ public:
 		switch (currentMap)
 		{
 		case OVERWORLD:
-			std::cout << "\tentering OVERWORLD(" << currentMap << ")\n";
+			std::cout << "\tentering OVERWORLD\n";
 			LoadTileMap("test_tile_map_0.txt");
 			break;
 		case DESERT:
-			std::cout << "\tentering DESERT(" << currentMap << ")\n";
+			std::cout << "\tentering DESERT\n";
 			LoadTileMap("test_tile_map_1.txt");
 			break;
 		case CAVE:

@@ -13,6 +13,9 @@
 #include <cstdlib>
 #include <ctime>
 
+const int block_size = 16;
+const int offset = 187;		//offset x
+
 class Engine
 {
 public:

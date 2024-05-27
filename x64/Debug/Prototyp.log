@@ -1,20 +1,10 @@
-﻿  BattlePokemonAttack.cpp
-C:\Users\wmtru\Downloads\PokeGraV3\PokeGraV3\BattlePlayerMove.h(69,48): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
-  (compiling source file 'BattlePokemonAttack.cpp')
+﻿  game_world_prototype_1.cpp
+C:\Users\rober\Desktop\Projekt\Prototyp\BattlePlayerMove.h(69,48): warning C4267: "=": konwersja z "size_t" do "int", możliwa utrata danych
+  (kompilowanie pliku źródłowego „game_world_prototype_1.cpp”)
   
-C:\Users\wmtru\Downloads\PokeGraV3\PokeGraV3\BattlePlayerMove.h(73,48): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
-  (compiling source file 'BattlePokemonAttack.cpp')
+C:\Users\rober\Desktop\Projekt\Prototyp\BattlePlayerMove.h(73,48): warning C4267: "=": konwersja z "size_t" do "int", możliwa utrata danych
+  (kompilowanie pliku źródłowego „game_world_prototype_1.cpp”)
   
-  Engine.cpp
-  game_world_prototype_1.cpp
-C:\Users\wmtru\Downloads\PokeGraV3\PokeGraV3\BattlePlayerMove.h(69,48): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
-  (compiling source file 'game_world_prototype_1.cpp')
-  
-C:\Users\wmtru\Downloads\PokeGraV3\PokeGraV3\BattlePlayerMove.h(73,48): warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
-  (compiling source file 'game_world_prototype_1.cpp')
-  
-  WorldEntities.cpp
-  Generating Code...
-C:\Users\wmtru\Downloads\PokeGraV3\PokeGraV3\WorldEntities.h(200): warning C4715: 'Enemy::isEnemyColliding': not all control paths return a value
-C:\Users\wmtru\Downloads\PokeGraV3\PokeGraV3\WorldEntities.h(228): warning C4715: 'Object::isObjectColliding': not all control paths return a value
-  Prototyp.vcxproj -> C:\Users\wmtru\Downloads\PokeGraV3\PokeGraV3\x64\Debug\Prototyp.exe
+C:\Users\rober\Desktop\Projekt\Prototyp\WorldEntities.h(258): warning C4715: "Enemy::isEnemyColliding”: niewszystkie ścieżki kodu zwracają wartość
+C:\Users\rober\Desktop\Projekt\Prototyp\WorldEntities.h(300): warning C4715: "Object::isObjectColliding”: niewszystkie ścieżki kodu zwracają wartość
+  Prototyp.vcxproj -> C:\Users\rober\Desktop\Projekt\Prototyp\x64\Debug\Prototyp.exe

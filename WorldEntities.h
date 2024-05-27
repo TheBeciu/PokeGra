@@ -6,6 +6,7 @@
 Engine game;
 
 enum Direction { DOWN, LEFT, RIGHT, UP };
+enum ObjectType { PORTAL, POTION};
 
 bool collision(float px, float py, float pw, float ph, float ox, float oy, float ow, float oh)
 {
@@ -27,7 +28,7 @@ private:
 	ALLEGRO_BITMAP* player;
 	int temp_item_counter = 0;
 public:
-	Player(float _px, float _py, ALLEGRO_BITMAP* _player)	{ px = _px * 16 + 187; py = _py * 16; player = _player; }
+	Player(float _px, float _py, ALLEGRO_BITMAP* _player)	{ px = _px * block_size + offset; py = _py * block_size; player = _player; }
 	float getX()											{ return px; }
 	float getY()											{ return py; }
 	int getDIR()											{ return dir; }
@@ -51,10 +52,10 @@ public:
 		else if (game.key[ALLEGRO_KEY_RIGHT])	{ px += game.getMSpeed(); dir = RIGHT; }
 		else { moving = false; }
 
-		if (py <= 0)							{ py += game.getMSpeed(); dir = UP; }
-		else if (py > game.getDispH() - 16)		{ py -= game.getMSpeed(); dir = DOWN; }
-		else if (px <= 0)						{ px += game.getMSpeed(); dir = LEFT; }
-		else if (px > game.getDispW() - 16)		{ px -= game.getMSpeed(); dir = RIGHT; }
+		if (py <= 0)								{ py += game.getMSpeed(); dir = UP; }
+		else if (py > game.getDispH() - block_size)	{ py -= game.getMSpeed(); dir = DOWN; }
+		else if (px <= 0)							{ px += game.getMSpeed(); dir = LEFT; }
+		else if (px > game.getDispW() - block_size)	{ px -= game.getMSpeed(); dir = RIGHT; }
 
 		//animacje gracza
 		if (moving)
@@ -79,13 +80,13 @@ public:
 
 	void draw_player()
 	{
-		al_draw_bitmap_region(player, b_sourceX, dir * al_get_bitmap_height(player) / 4, 16, 16, px, py, 0);
+		al_draw_bitmap_region(player, b_sourceX, dir * al_get_bitmap_height(player) / 4, block_size, block_size, px, py, 0);
 		//al_draw_rectangle(px+2, py+12, px + 14, py + 16, al_map_rgb(255, 255, 255), 0);
 	}
 	void change_pos(int _x, int _y, int _d)
 	{
-		px = _x * 16 + 187;
-		py = _y * 16;
+		px = _x * block_size + offset;
+		py = _y * block_size;
 		dir = _d;
 	}
 };
@@ -107,12 +108,15 @@ class Enemy
 	float path3 = 290;
 	float path4 = 550;
 
+	float s_x;
+	float s_y;
+
 	//musze to tak zrobic, bo inaczej animacja przeciwnika jest aktywna podczas poruszania sie gracza;
 	float EnemyTimeSinceLastFrameSwap = 0.0;
 	float EnemyAnimSpeed = game.getAnimSpeed() / 2;
 	float EnemyAnimUpdateTime = 1.0 / EnemyAnimSpeed;
 public:
-	Enemy(float _posx, float _posy, int _m, int _dir, ALLEGRO_BITMAP* _sprite) { posx = _posx; posy = _posy; movement_type = _m; dir = _dir; sprite = _sprite; }
+	Enemy(float _posx, float _posy, int _m, int _dir, ALLEGRO_BITMAP* _sprite) { posx = _posx; posy = _posy; movement_type = _m; dir = _dir; sprite = _sprite; s_x = posx; s_y = posy; }
 	float getPOSX() { return posx; }
 	float getPOSY() { return posy; }
 	void setPOSX(float x) { posx = x; }
@@ -125,10 +129,14 @@ public:
 		{
 			if (movement_type == 0)
 			{
+				moving = false;
+			}
+			else if (movement_type == 1)
+			{
 				if (dir == DOWN)
 				{
 					posy++;
-					if (posy == path2)
+					if (posy == s_y + (block_size * 6))
 					{
 						dir = UP;
 					}
@@ -136,18 +144,34 @@ public:
 				else if (dir == UP)
 				{
 					posy--;
-					if (posy == path1)
+					if (posy == s_y)
 					{
 						dir = DOWN;
 					}
 				}
 			}
-			else if (movement_type == 1)
+			else if (movement_type == 2)
 			{
-				if (dir == RIGHT)
+				if (dir == DOWN)
+				{
+					posy++;
+					if (posy == s_y + (block_size * 7))
+					{
+						dir = RIGHT;
+					}
+				}
+				else if (dir == RIGHT)
 				{
 					posx++;
-					if (posx == path4)
+					if (posx == s_x + (block_size * 8))
+					{
+						dir = UP;
+					}
+				}
+				else if (dir == UP)
+				{
+					posy--;
+					if (posy == s_y)
 					{
 						dir = LEFT;
 					}
@@ -155,13 +179,47 @@ public:
 				else if (dir == LEFT)
 				{
 					posx--;
-					if (posx == path3)
+					if (posx == s_x)
+					{
+						dir = DOWN;
+					}
+				}
+			}
+			else if (movement_type == 3)
+			{
+				if (dir == RIGHT)
+				{
+					posx++;
+					if (posx == s_x + (block_size * 8))
+					{
+						dir = DOWN;
+					}
+				}
+				else if (dir == DOWN)
+				{
+					posy++;
+					if (posy == s_y + (block_size * 7))
+					{
+						dir = LEFT;
+					}
+				}
+				else if (dir == LEFT)
+				{
+					posx--;
+					if (posx == s_x)
+					{
+						dir = UP;
+					}
+				}
+				else if (dir == UP)
+				{
+					posy--;
+					if (posy == s_y)
 					{
 						dir = RIGHT;
 					}
 				}
 			}
-			
 
 			if (moving)
 			{
@@ -185,14 +243,14 @@ public:
 	}
 	void draw_enemy()
 	{
-		al_draw_bitmap_region(sprite, b_sourceX, dir * al_get_bitmap_height(sprite) / 4, 16, 16, posx, posy, 0);
+		al_draw_bitmap_region(sprite, b_sourceX, dir * al_get_bitmap_height(sprite) / 4, block_size, block_size, posx, posy, 0);
 		//al_draw_rectangle(posx + 2, posy + 12, posx + 14, posy + 16, al_map_rgb(255, 255, 255), 0);
 	}
 	bool isEnemyColliding(Player& p)
 	{
 		if(on_map)
 		{
-			if (collision(p.getX() + 2, p.getY() + 12, 16 - 4, 16 - 12, posx + 2, posy + 12, 16 - 4, 16 - 12))
+			if (collision(p.getX() + 2, p.getY() + 12, block_size - 4, block_size - 12, posx + 2, posy + 12, block_size - 4, block_size - 12))
 			{
 				return true;
 			}
@@ -210,20 +268,34 @@ class Object
 	int tileY;
 	ALLEGRO_BITMAP* texture;
 	bool on_map = true;
+	int type;
 public:
-	Object(int _x, int _y, ALLEGRO_BITMAP* _t) { tileX = _x; tileY = _y; texture = _t; }
+	Object(int _x, int _y, ALLEGRO_BITMAP* _t, int _type) { tileX = _x; tileY = _y; texture = _t; type = _type; }
 	void setONMAP(bool b) { on_map = b; }
 	bool isThere() { return on_map; }
 
 	void drawObject()
 	{
-		al_draw_bitmap(texture, tileX * 16 + 187, tileY * 16, 0);
+		al_draw_bitmap(texture, tileX * block_size + offset, tileY * block_size, 0);
 	}
-	bool isObjectColliding(Player& p)
+	int isObjectColliding(Player& p)
 	{
-		if (collision(p.getX() + 2, p.getY() + 12, 16 - 4, 16 - 12, tileX * 16 + 187, tileY * 16, 16, 16))
+		if(on_map)
 		{
-			return true;
+			if(type == PORTAL)
+			{
+				if (collision(p.getX() + 2, p.getY() + 12, block_size - 4, block_size - 12, tileX * block_size + offset, tileY * block_size, block_size, block_size))
+				{
+					return 1;
+				}
+			}
+			else if (type == POTION)
+			{
+				if (collision(p.getX() + 2, p.getY() + 12, block_size - 4, block_size - 12, tileX * block_size + offset, tileY * block_size, block_size, block_size))
+				{
+					return 2;
+				}
+			}
 		}
 	}
 	void changePos(int _x, int _y)
