@@ -91,6 +91,49 @@ Pokemon createSquirtle(ResourceCache& resCache) {
 }
 
 
+Pokemon createGengar(ResourceCache& resCache) {
+	Pokemon pokemon{
+		"Gengar",
+		resCache.bitmap("battle/enemyGengar.png"),
+		0.0f, 0.0f,
+		100.0f, 100.0f,
+		60.0f, 60.0f,
+		40.0f, 40.0f
+	};
+	pokemon.attacks = createBasicPokemonAttacks(resCache);
+	pokemon.attacks.push_back(PokemonAttack{
+		"Lick",
+		-50.0f, 0.0f, 0.0f,
+		0.0f, 0.0f,
+		resCache.bitmap("battle/Lick.png"), resCache.soundSample("battle/Lick.mp3")
+		});
+
+	return pokemon;
+}
+
+Pokemon createArbok(ResourceCache& resCache) {
+	Pokemon pokemon{
+		"Arbok",
+		resCache.bitmap("battle/enemyArbok.png"),
+		0.0f, 0.0f,
+		100.0f, 100.0f,
+		60.0f, 60.0f,
+		40.0f, 40.0f
+	};
+	pokemon.attacks = createBasicPokemonAttacks(resCache);
+	pokemon.attacks.push_back(PokemonAttack{
+		"Poison Sting",
+		-50.0f, 0.0f, 0.0f,
+		0.0f, 0.0f,
+		resCache.bitmap("battle/PoisonSting.png"), resCache.soundSample("battle/PoisonFang.mp3")
+		});
+
+	return pokemon;
+}
+
+
+
+
 Pokemon createBulbasaur(ResourceCache& resCache) {
 	Pokemon pokemon{
 		"Bulbasaur",
@@ -133,7 +176,7 @@ Pokemon createCharmander(ResourceCache& resCache) {
 }
 
 
-std::unique_ptr<PokemonTrainer> createEnemy(ResourceCache& resCache) {
+std::unique_ptr<PokemonTrainer> createEnemy1(ResourceCache& resCache) {
 	std::unique_ptr<PokemonTrainer> enemy{new PokemonTrainer{
 		"Lance",
 		resCache.bitmap("enemyLance.png"),  332.0f, 60.0f,
@@ -145,6 +188,33 @@ std::unique_ptr<PokemonTrainer> createEnemy(ResourceCache& resCache) {
 	enemy->items.push_back(Item{ "Potion", 75.0f, 0.0f, 0.0f });
 	return enemy;
 }
+
+std::unique_ptr<PokemonTrainer> createEnemy2(ResourceCache& resCache) {
+	std::unique_ptr<PokemonTrainer> enemy{ new PokemonTrainer{
+		"Lance",
+		resCache.bitmap("enemyLance.png"),  332.0f, 60.0f,
+		resCache.bitmap("battle/enemyLance.png"),  0.0f, 0.0f,
+		100.0f
+	} };
+	enemy->pokemons.push_back(createGengar(resCache));
+	enemy->pokemons.push_back(createBulbasaur(resCache));
+	enemy->items.push_back(Item{ "Potion", 75.0f, 0.0f, 0.0f });
+	return enemy;
+}
+
+std::unique_ptr<PokemonTrainer> createEnemy3(ResourceCache& resCache) {
+	std::unique_ptr<PokemonTrainer> enemy{ new PokemonTrainer{
+		"Lance",
+		resCache.bitmap("enemyLance.png"),  332.0f, 60.0f,
+		resCache.bitmap("battle/enemyLance.png"),  0.0f, 0.0f,
+		100.0f
+	} };
+	enemy->pokemons.push_back(createArbok(resCache));
+	enemy->pokemons.push_back(createCharmander(resCache));
+	enemy->items.push_back(Item{ "Potion", 75.0f, 0.0f, 0.0f });
+	return enemy;
+}
+
 
 
 int main()
@@ -165,6 +235,12 @@ int main()
 	game.display_init();
 	game.keyboard_init();
 	sprites_init();
+
+	ALLEGRO_SAMPLE* song = al_load_sample("GameMusic.mp3");
+
+	ALLEGRO_SAMPLE_INSTANCE* songInstance = al_create_sample_instance(song);
+	al_set_sample_instance_playmode(songInstance, ALLEGRO_PLAYMODE_LOOP);
+	al_attach_sample_instance_to_mixer(songInstance, al_get_default_mixer());
 
 	ALLEGRO_BITMAP* player_worldbitmap = al_load_bitmap("player_temp.png");
 	ALLEGRO_BITMAP* enemy_worldbitmap = al_load_bitmap("enemy_temp.png");
@@ -230,6 +306,8 @@ int main()
 	Object potion(11, 7, item_potion, POTION);
 	Object potion2(15, 28, item_potion, POTION);
 
+	al_play_sample_instance(songInstance);
+
 	//gameloop
 	al_start_timer(timer);
 	while (!done)
@@ -261,18 +339,20 @@ int main()
 					enemy1.update_enemy();
 					if (enemy1.isEnemyColliding(trainer) == 1)
 					{
-						enemy = createEnemy(resCache);
+						enemy = createEnemy1(resCache);
 						battle.start(&player, enemy.get());
 						enemy1.setONMAP(false);
 						game.changeState(state, FIGHT);
+						al_stop_sample_instance(songInstance);
 					}
 					enemy2.update_enemy();
 					if (enemy2.isEnemyColliding(trainer) == 1)
 					{
-						enemy = createEnemy(resCache);
+						enemy = createEnemy2(resCache);
 						battle.start(&player, enemy.get());
 						enemy2.setONMAP(false);
 						game.changeState(state, FIGHT);
+						al_stop_sample_instance(songInstance);
 					}
 				}
 				else if(test1.current() == DESERT)
@@ -280,26 +360,29 @@ int main()
 					enemy3.update_enemy();
 					if (enemy3.isEnemyColliding(trainer) == 1)
 					{
-						enemy = createEnemy(resCache);
+						enemy = createEnemy2(resCache);
 						battle.start(&player, enemy.get());
 						enemy3.setONMAP(false);
 						game.changeState(state, FIGHT);
+						al_stop_sample_instance(songInstance);
 					}
 					enemy4.update_enemy();
 					if (enemy4.isEnemyColliding(trainer) == 1)
 					{
-						enemy = createEnemy(resCache);
+						enemy = createEnemy1(resCache);
 						battle.start(&player, enemy.get());
 						enemy4.setONMAP(false);
 						game.changeState(state, FIGHT);
+						al_stop_sample_instance(songInstance);
 					}
 					enemy5.update_enemy();
 					if (enemy5.isEnemyColliding(trainer) == 1)
 					{
-						enemy = createEnemy(resCache);
+						enemy = createEnemy2(resCache);
 						battle.start(&player, enemy.get());
 						enemy5.setONMAP(false);
 						game.changeState(state, FIGHT);
+						al_stop_sample_instance(songInstance);
 					}
 				}
 
@@ -424,6 +507,7 @@ int main()
 			}
 			else if (state == FIGHT)
 			{
+				
 				al_clear_to_color(al_map_rgb(255, 255, 255));
 				if(battle.isStarting())
 				{
@@ -463,5 +547,7 @@ int main()
 	sprites_deinit();
 	al_destroy_timer(timer);
 	al_destroy_event_queue(queue);
+	al_destroy_sample(song);
+	al_destroy_sample_instance(songInstance);
 	return 0;
 }
