@@ -333,6 +333,7 @@ int main()
 
 			else if (state == WORLD)
 			{
+				al_play_sample_instance(songInstance);
 				trainer.update_player();
 				if (test1.current() == OVERWORLD)
 				{
@@ -357,6 +358,7 @@ int main()
 				}
 				else if(test1.current() == DESERT)
 				{
+					al_play_sample_instance(songInstance);
 					enemy3.update_enemy();
 					if (enemy3.isEnemyColliding(trainer) == 1)
 					{
@@ -429,6 +431,7 @@ int main()
 				if (game.checkKeyDownOnce(ALLEGRO_KEY_F))
 				{
 					game.changeState(state, WORLD);
+
 				}
 				else if (game.checkKeyDownOnce(ALLEGRO_KEY_SPACE))
 				{
