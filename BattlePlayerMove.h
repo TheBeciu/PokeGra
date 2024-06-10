@@ -58,7 +58,7 @@ public:
 				if (currentOption == 3) {
 					cache.removeSoundSample("battle/battle.mp3");
 					enemy.hitPoints = 0.0f;
-					return BattleState::battleEnd();
+					return BattleState::battleEscape();
 				}
 				selectedOption = currentOption;
 				currentOption = 0;
@@ -113,6 +113,10 @@ public:
 					return new BattleUseItem(engine, cache, player, nextState);
 				}
 			}
+		}
+		else if (selectedOption == 3) {
+			engine.changeState(engine.state, 4);
+			return BattleState::battleEscape();
 		}
 
 		return nullptr;

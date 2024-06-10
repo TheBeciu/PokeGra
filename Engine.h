@@ -7,6 +7,8 @@
 #include <allegro5/allegro_primitives.h>
 #include <allegro5/allegro_image.h>
 #include <iostream>
+#include <fstream>
+#include <string>
 #include <vector>
 #include <utility>
 #include <memory>
@@ -28,6 +30,8 @@ public:
 	ALLEGRO_TIMER* timer;
 	ALLEGRO_TIMER* animFrames;
 	unsigned char key[ALLEGRO_KEY_MAX];
+	int playtime;
+	int state = -1;
 private:
 	const float FPS = 30.0;
 	const float frames = 5.0;
@@ -70,6 +74,7 @@ public:
 	void keyboard_update(ALLEGRO_EVENT* event);
 
 	void changeState(int &state, int nState);
+	bool betterHS(int y);
 
 	/*
 	Przyjmuje (keyCode < ALLEGRO_KEY_MAX) jako parametr, np. ALLEGRO_KEY_E, i zwraca true,

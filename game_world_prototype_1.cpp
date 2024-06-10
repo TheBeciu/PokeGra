@@ -11,6 +11,7 @@
 #include <memory>
 #include <cstdlib>
 #include <ctime>
+#include <fstream>
 
 #include "Engine.h"
 
@@ -242,10 +243,17 @@ int main()
 	al_set_sample_instance_playmode(songInstance, ALLEGRO_PLAYMODE_LOOP);
 	al_attach_sample_instance_to_mixer(songInstance, al_get_default_mixer());
 
-	ALLEGRO_BITMAP* player_worldbitmap = al_load_bitmap("player_temp.png");
+	ALLEGRO_BITMAP* start_screen = al_load_bitmap("start.png");
+	ALLEGRO_BITMAP* win_screen = al_load_bitmap("win.png");
+	ALLEGRO_BITMAP* fail_screen = al_load_bitmap("fail.png");
+	ALLEGRO_BITMAP* coward_screen = al_load_bitmap("coward.png");
+
+	ALLEGRO_BITMAP* player_worldbitmap = al_load_bitmap("player.png");
 	ALLEGRO_BITMAP* enemy_worldbitmap = al_load_bitmap("enemy_temp.png");
 	ALLEGRO_BITMAP* portal_texture = al_load_bitmap("portal.png");
 	ALLEGRO_BITMAP* item_potion = al_load_bitmap("potion.png");
+	ALLEGRO_BITMAP* pokeball = al_load_bitmap("pokeball.png");
+	ALLEGRO_BITMAP* inventory = al_load_bitmap("inventory_bg.png");
 
 	al_install_keyboard();
 
@@ -269,7 +277,7 @@ int main()
 	ResourceCache resCache;
 	Battle battle{game, resCache};
 	PokemonTrainer player{
-		"Bonifacy",
+		"Gracz",
 		resCache.bitmap("enemyLance.png"),  0.0f, 0.0f,
 		resCache.bitmap("battle/player.png"),  0.0f, 0.0f,
 		100.0f
@@ -288,13 +296,18 @@ int main()
 
 	bool redraw = true;
 	bool done = false;
+	bool rekord = false;
 
-	enum GAMESTATE { MENU, WORLD, FIGHT, ENDSCREEN };
+	std::ifstream plik;
+	std::string s;
+	int r;
+
+	enum GAMESTATE { MENU, WORLD, FIGHT, ENDSCREEN_WIN, ENDSCREEN_ESCAPE, ENDSCREEN_LOSE };
 	enum MAP {OVERWORLD, DESERT, CAVE, ENDHALL};
 
-	int state = -1;
+	//int state = -1;
 
-	game.changeState(state, MENU);
+	game.changeState(game.state, MENU);
 
 	Player trainer(test1.getSpawnX(), test1.getSpawnY(), player_worldbitmap);
 	Enemy enemy1(7 * block_size + offset, 22 * block_size, 1, DOWN, enemy_worldbitmap);
@@ -305,8 +318,10 @@ int main()
 	Object portal(25, 5, portal_texture, PORTAL);
 	Object potion(11, 7, item_potion, POTION);
 	Object potion2(15, 28, item_potion, POTION);
+	Object potion3(14, 28, item_potion, POTION);
+	Object pokeball1(23, 3, pokeball, POKEBALL);
 
-	al_play_sample_instance(songInstance);
+	//al_play_sample_instance(songInstance);
 
 	//gameloop
 	al_start_timer(timer);
@@ -322,18 +337,23 @@ int main()
 				std::cout << "DONE"; done = true; 
 			}
 
-			if (state == MENU)
+			if (game.state == MENU)
 			{
+				plik.open("highscore.txt");
+				getline(plik, s);
+				plik.close();
+				r = stoi(s);
 				if (game.checkKeyDownOnce(ALLEGRO_KEY_ENTER))
 				{
-					game.changeState(state, WORLD);
+					game.changeState(game.state, WORLD);
 					test1.changeMap(OVERWORLD);
 				}
 			}
 
-			else if (state == WORLD)
+			else if (game.state == WORLD)
 			{
 				al_play_sample_instance(songInstance);
+				game.playtime = al_get_timer_count(timer);
 				trainer.update_player();
 				if (test1.current() == OVERWORLD)
 				{
@@ -343,7 +363,7 @@ int main()
 						enemy = createEnemy1(resCache);
 						battle.start(&player, enemy.get());
 						enemy1.setONMAP(false);
-						game.changeState(state, FIGHT);
+						game.changeState(game.state, FIGHT);
 						al_stop_sample_instance(songInstance);
 					}
 					enemy2.update_enemy();
@@ -352,7 +372,7 @@ int main()
 						enemy = createEnemy2(resCache);
 						battle.start(&player, enemy.get());
 						enemy2.setONMAP(false);
-						game.changeState(state, FIGHT);
+						game.changeState(game.state, FIGHT);
 						al_stop_sample_instance(songInstance);
 					}
 				}
@@ -365,7 +385,7 @@ int main()
 						enemy = createEnemy2(resCache);
 						battle.start(&player, enemy.get());
 						enemy3.setONMAP(false);
-						game.changeState(state, FIGHT);
+						game.changeState(game.state, FIGHT);
 						al_stop_sample_instance(songInstance);
 					}
 					enemy4.update_enemy();
@@ -374,7 +394,7 @@ int main()
 						enemy = createEnemy1(resCache);
 						battle.start(&player, enemy.get());
 						enemy4.setONMAP(false);
-						game.changeState(state, FIGHT);
+						game.changeState(game.state, FIGHT);
 						al_stop_sample_instance(songInstance);
 					}
 					enemy5.update_enemy();
@@ -383,7 +403,7 @@ int main()
 						enemy = createEnemy2(resCache);
 						battle.start(&player, enemy.get());
 						enemy5.setONMAP(false);
-						game.changeState(state, FIGHT);
+						game.changeState(game.state, FIGHT);
 						al_stop_sample_instance(songInstance);
 					}
 				}
@@ -404,10 +424,20 @@ int main()
 						trainer.change_pos(15, 3, LEFT);
 						potion.changePos(14, 3);
 						potion.setONMAP(true);
+						pokeball1.changePos(2, 15);
+						pokeball1.setONMAP(true);
 					}
 					else if (test1.current() == DESERT)
 					{
-						game.changeState(state, ENDSCREEN);
+						if (game.betterHS(game.playtime / 30))
+						{
+							std::ofstream zapis;
+							zapis.open("highscore.txt");
+							zapis << (game.playtime / 30);
+							zapis.close();
+							rekord = true;
+						}
+						game.changeState(game.state, ENDSCREEN_WIN);
 					}
 				}
 				if (potion.isObjectColliding(trainer))
@@ -420,36 +450,49 @@ int main()
 					player.items.push_back(Item{ "Potion", 75.0f, 0.0f, 0.0f });
 					potion2.setONMAP(false);
 				}
+				if (potion3.isObjectColliding(trainer))
+				{
+					player.items.push_back(Item{ "Potion", 75.0f, 0.0f, 0.0f });
+					potion3.setONMAP(false);
+				}
+				if (pokeball1.isObjectColliding(trainer))
+				{
+					if (test1.current() == OVERWORLD)
+					{
+						player.pokemons.push_back(createPikachu(resCache));
+						pokeball1.setONMAP(false);
+					}
+					else if(test1.current() == DESERT)
+					{
+						player.pokemons.push_back(createSquirtle(resCache));
+						pokeball1.setONMAP(false);
+					}
+				}
 			}
-			else if (state == FIGHT)
+			else if (game.state == FIGHT)
 			{
 				if (battle.isStarted())
 				{
 					battle.handleKeyboardEvents();
 				}
-				
-				if (game.checkKeyDownOnce(ALLEGRO_KEY_F))
-				{
-					game.changeState(state, WORLD);
-
-				}
-				else if (game.checkKeyDownOnce(ALLEGRO_KEY_SPACE))
-				{
-					game.changeState(state, ENDSCREEN);
-				}
 			}
-			else if (state == ENDSCREEN)
+			else if (game.state == ENDSCREEN_WIN || game.state == ENDSCREEN_ESCAPE || game.state == ENDSCREEN_LOSE)
 			{
-				if (game.checkKeyDownOnce(ALLEGRO_KEY_SPACE))
+				if (game.checkKeyDownOnce(ALLEGRO_KEY_ENTER))
 				{
-					game.changeState(state, MENU);
+					game.changeState(game.state, MENU);
 					test1.changeMap(-1);
 					portal.changePos(25, 5);
+					potion.changePos(11, 7);
+					potion2.changePos(15, 28);
+					potion2.changePos(14, 28);
 					enemy1.setONMAP(true);
 					enemy2.setONMAP(true);
 					enemy3.setONMAP(true);
 					enemy4.setONMAP(true);
 					enemy5.setONMAP(true);
+					al_set_timer_count(timer, 0);
+					rekord = false;
 				}
 			}
 
@@ -468,12 +511,23 @@ int main()
 		if (redraw && al_is_event_queue_empty(queue))
 		{
 			game.display_pre_draw();
-			if (state == MENU)
+			if (game.state == MENU)
 			{
-				al_clear_to_color(al_map_rgb(100, 50, 100));
-				al_draw_textf(font, al_map_rgb(255, 255, 255), game.getDispW()/2, game.getDispH() / 2, 0, "WORLD (ENTER)");
+				al_draw_scaled_bitmap(start_screen, 0, 0, 2048, 1152, 0, 0, game.getDispW(), game.getDispH(), 0);
+				al_draw_textf(font, al_map_rgb(0, 0, 0), 10, 400, 0, "ENTER - start/potwierdzenie");
+				al_draw_textf(font, al_map_rgb(0, 0, 0), 10, 410, 0, "Strzalki - ruch postaci/poruszanie sie po menu");
+				al_draw_textf(font, al_map_rgb(0, 0, 0), 10, 420, 0, "ESC - wyjscie");
+				al_draw_textf(font, al_map_rgb(0, 0, 0), game.getDispW() - 110, 50, 0, "Obecny rekord");
+				if (r != 0)
+				{
+					al_draw_textf(font, al_map_rgb(0, 0, 0), game.getDispW() - 110, 60, 0, "%i:%.2i", game.playtime / 1800, ((game.playtime / 30) >= 60) ? (game.playtime / 30) - (60 * (game.playtime / 1800)) : (game.playtime / 30));
+				}
+				else
+				{
+					al_draw_textf(font, al_map_rgb(0, 0, 0), game.getDispW() - 110, 60, 0, "-brak-");
+				}
 			}
-			else if (state == WORLD)
+			else if (game.state == WORLD)
 			{
 				if (test1.current() == OVERWORLD)
 				{
@@ -487,6 +541,8 @@ int main()
 						portal.drawObject();
 					if (potion.isThere())
 						potion.drawObject();
+					if (pokeball1.isThere())
+						pokeball1.drawObject();
 				}
 				else if (test1.current() == DESERT)
 				{
@@ -504,11 +560,25 @@ int main()
 						potion.drawObject();
 					if (potion2.isThere())
 						potion2.drawObject();
+					if (potion3.isThere())
+						potion3.drawObject();
+					if (pokeball1.isThere())
+						pokeball1.drawObject();
 				}
 
 				trainer.draw_player();
+
+				al_draw_bitmap(inventory, 0, game.getDispH() - 105, 0);
+				al_draw_textf(font, al_map_rgb(0, 0, 0), 5, game.getDispH() - 100, 0, "Mikstury zdrowia: %i", player.items.capacity());
+				al_draw_textf(font, al_map_rgb(0, 0, 0), 5, game.getDispH() - 90, 0, "Twoje Pokemony:");
+				for (int i = 0; i < player.pokemons.size(); i++)
+				{
+					al_draw_textf(font, al_map_rgb(0, 0, 0), 5, game.getDispH() - 80 + (i * 10), 0, "%s: %.0f / %.0f", player.pokemons[i].name.c_str(), player.pokemons[i].hitPoints, player.pokemons[i].maxHitPoints);
+				}
+				al_draw_textf(font, al_map_rgb(255, 255, 255), 10, 10, 0, "%i:%.2i", game.playtime / 1800, (game.playtime / 30) - (60 * (game.playtime / 1800)));
+
 			}
-			else if (state == FIGHT)
+			else if (game.state == FIGHT)
 			{
 				
 				al_clear_to_color(al_map_rgb(255, 255, 255));
@@ -524,22 +594,40 @@ int main()
 				}
 				else
 				{
-					game.changeState(state, WORLD);
+					if (player.pokemons.empty())
+					{
+						game.changeState(game.state, ENDSCREEN_LOSE);
+					}
+					else
+					{
+						game.changeState(game.state, WORLD);
+					}
 				}
 			}
-			else if (state == ENDSCREEN)
+			else if (game.state == ENDSCREEN_WIN)
 			{
-				al_clear_to_color(al_map_rgb(100, 100, 100));
-				al_draw_textf(font, al_map_rgb(255, 255, 255), game.getDispW() / 2, game.getDispH() / 2, 0, "MENU (SPACE)");
+				al_draw_scaled_bitmap(win_screen, 0, 0, 2048, 1152, 0, 0, game.getDispW(), game.getDispH(), 0);
+				trainer.change_pos(test1.getSpawnX(), test1.getSpawnY(), DOWN);
+				al_draw_textf(font, al_map_rgb(255, 255, 255), 350, 202, 0, "%i:%.2i", game.playtime / 1800, ((game.playtime / 30) >= 60) ? (game.playtime / 30) - (60 * (game.playtime / 1800)) : (game.playtime / 30));
+			}
+			else if (game.state == ENDSCREEN_ESCAPE)
+			{
+				al_draw_scaled_bitmap(coward_screen, 0, 0, 2048, 1152, 0, 0, game.getDispW(), game.getDispH(), 0);
+				trainer.change_pos(test1.getSpawnX(), test1.getSpawnY(), DOWN);
+				al_draw_textf(font, al_map_rgb(255, 255, 255), 180, 182, 0, "%i:%.2i", game.playtime / 1800, ((game.playtime / 30) >= 60) ? (game.playtime / 30) - (60 * (game.playtime / 1800)) : (game.playtime / 30));
+			}
+			else if (game.state == ENDSCREEN_LOSE)
+			{
+				al_draw_scaled_bitmap(fail_screen, 0, 0, 2048, 1152, 0, 0, game.getDispW(), game.getDispH(), 0);
 				trainer.change_pos(test1.getSpawnX(), test1.getSpawnY(), DOWN);
 			}
 
 			//informacje, które mog¹ siê przydaæ
-			al_draw_textf(font, al_map_rgb(255, 255, 255), 0, 0, 0, "X: %.1f Y: %.1f", trainer.getX(), trainer.getY());
-			al_draw_textf(font, al_map_rgb(255, 255, 255), 0, 10, 0, "Map: %i", test1.current());
-			al_draw_textf(font, al_map_rgb(255, 255, 255), 0, 20, 0, "Speed: %i", game.getMSpeed());
-			al_draw_textf(font, al_map_rgb(255, 255, 255), (game.getDispW() - 100), (game.getDispH() - 20), 0, "%i x %i", game.info.x2, game.info.y2);
-			al_draw_textf(font, al_map_rgb(255, 255, 255), 0, 30, 0, "Direction: %i  0:DOWN 1:LEFT 2:RIGHT 3:UP", trainer.getDIR());
+			//al_draw_textf(font, al_map_rgb(255, 255, 255), 0, 0, 0, "X: %.1f Y: %.1f", trainer.getX(), trainer.getY());
+			//al_draw_textf(font, al_map_rgb(255, 255, 255), 0, 10, 0, "Map: %i", test1.current());
+			//al_draw_textf(font, al_map_rgb(255, 255, 255), 0, 20, 0, "Speed: %i", game.getMSpeed());
+			//al_draw_textf(font, al_map_rgb(255, 255, 255), (game.getDispW() - 100), (game.getDispH() - 20), 0, "%i x %i", game.info.x2, game.info.y2);
+			//al_draw_textf(font, al_map_rgb(255, 255, 255), 0, 30, 0, "Direction: %i  0:DOWN 1:LEFT 2:RIGHT 3:UP", trainer.getDIR());
 
 			game.display_post_draw();
 			redraw = false;
@@ -549,6 +637,7 @@ int main()
 	game.display_deinit();
 	sprites_deinit();
 	al_destroy_timer(timer);
+	al_destroy_timer(animFrames);
 	al_destroy_event_queue(queue);
 	al_destroy_sample(song);
 	al_destroy_sample_instance(songInstance);

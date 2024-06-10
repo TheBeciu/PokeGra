@@ -1,7 +1,7 @@
 #include <allegro5/allegro.h>
 #include "Engine.h"
 
-enum GAMESTATE { MENU, WORLD, FIGHT, ENDSCREEN };
+enum GAMESTATE { MENU, WORLD, FIGHT, ENDSCREEN_WIN, ENDSCREEN_ESCAPE, ENDSCREEN_LOSE };
 
 void Engine::display_init()
 {
@@ -65,8 +65,14 @@ void Engine::changeState(int& state, int nState)
 	case FIGHT:
 		std::cout << "leaving FIGHT\n";
 		break;
-	case ENDSCREEN:
-		std::cout << "leaving ENDSCREEN\n";
+	case ENDSCREEN_WIN:
+		std::cout << "leaving ENDSCREEN_WIN\n";
+		break;
+	case ENDSCREEN_ESCAPE:
+		std::cout << "leaving ENDSCREEN_ESCAPE\n";
+		break;
+	case ENDSCREEN_LOSE:
+		std::cout << "leaving ENDSCREEN_LOSE\n";
 		break;
 	}
 
@@ -84,9 +90,33 @@ void Engine::changeState(int& state, int nState)
 	case FIGHT:
 		std::cout << "entering FIGHT\n";
 		break;
-	case ENDSCREEN:
-		std::cout << "entering ENDSCREEN\n";
+	case ENDSCREEN_WIN:
+		std::cout << "entering ENDSCREEN_WIN\n";
+		break;
+	case ENDSCREEN_ESCAPE:
+		std::cout << "entering ENDSCREEN_ESCAPE\n";
+		break;
+	case ENDSCREEN_LOSE:
+		std::cout << "entering ENDSCREEN_LOSE\n";
 		break;
 	}
 
+}
+bool Engine::betterHS(int y)
+{
+	std::ifstream odczyt;
+	odczyt.open("highscore.txt");
+	std::string x;
+	getline(odczyt, x);
+	int z = stoi(x);
+	odczyt.close();
+	if (z == 0)
+	{
+		return true;
+	}
+	if (y < z)
+	{
+		return true;
+	}
+	return false;
 }

@@ -83,6 +83,11 @@ public:
 		BattleState* newState = state->handleInput(*player, *enemy);
 		if (newState == BattleState::battleEnd())
 			state.reset(nullptr);
+		else if (newState == BattleState::battleEscape())
+		{
+			engine.changeState(engine.state, 4);
+			state.reset(nullptr);
+		}
 		else if (newState)
 			state.reset(newState);
 	}
@@ -101,6 +106,11 @@ public:
 		BattleState* newState = state->update(*player, *enemy);
 		if (newState == BattleState::battleEnd())
 			state.reset(nullptr);
+		else if (newState == BattleState::battleEscape())
+		{
+			engine.changeState(engine.state, 4);
+			state.reset(nullptr);
+		}
 		else if (newState)
 			state.reset(newState);
 	}

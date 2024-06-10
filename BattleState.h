@@ -13,6 +13,13 @@ public:
 		return &battleEnd;
 	}
 
+	static BattleState* battleEscape() {
+		//Zwraca wskaŸnik na obiekt, który oznacza koniec walki
+
+		static BattleState battleEscape;
+		return &battleEscape;
+	}
+
 
 	BattleState(BattleState&&) = delete;	//kopiowanie i przenoszenie wy³¹czone
 

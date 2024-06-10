@@ -6,5 +6,5 @@ C:\Users\rober\Desktop\Projekt\Prototyp\BattlePlayerMove.h(73,48): warning C4267
   (kompilowanie pliku źródłowego „game_world_prototype_1.cpp”)
   
 C:\Users\rober\Desktop\Projekt\Prototyp\WorldEntities.h(258): warning C4715: "Enemy::isEnemyColliding”: niewszystkie ścieżki kodu zwracają wartość
-C:\Users\rober\Desktop\Projekt\Prototyp\WorldEntities.h(300): warning C4715: "Object::isObjectColliding”: niewszystkie ścieżki kodu zwracają wartość
+C:\Users\rober\Desktop\Projekt\Prototyp\WorldEntities.h(307): warning C4715: "Object::isObjectColliding”: niewszystkie ścieżki kodu zwracają wartość
   Prototyp.vcxproj -> C:\Users\rober\Desktop\Projekt\Prototyp\x64\Debug\Prototyp.exe

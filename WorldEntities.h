@@ -6,7 +6,7 @@
 Engine game;
 
 enum Direction { DOWN, LEFT, RIGHT, UP };
-enum ObjectType { PORTAL, POTION};
+enum ObjectType { PORTAL, POTION, POKEBALL};
 
 bool collision(float px, float py, float pw, float ph, float ox, float oy, float ow, float oh)
 {
@@ -250,7 +250,7 @@ public:
 	{
 		if(on_map)
 		{
-			if (collision(p.getX() + 2, p.getY() + 12, block_size - 4, block_size - 12, posx + 2, posy + 12, block_size - 4, block_size - 12))
+			if (collision(p.getX() + 2, p.getY() + 12, block_size - 4, block_size - 12, posx, posy, block_size, block_size))
 			{
 				return true;
 			}
@@ -294,6 +294,13 @@ public:
 				if (collision(p.getX() + 2, p.getY() + 12, block_size - 4, block_size - 12, tileX * block_size + offset, tileY * block_size, block_size, block_size))
 				{
 					return 2;
+				}
+			}
+			else if (type == POKEBALL)
+			{
+				if (collision(p.getX() + 2, p.getY() + 12, block_size - 4, block_size - 12, tileX * block_size + offset, tileY * block_size, block_size, block_size))
+				{
+					return 3;
 				}
 			}
 		}
